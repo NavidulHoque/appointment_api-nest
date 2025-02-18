@@ -42,8 +42,14 @@ export const DoctorSchema = new Schema({
     },
 
     workingHours: {
-        start: { type: String, required: true },  // Example: "09:00 AM"
-        end: { type: String, required: true },    // Example: "05:00 PM"
+        start: { 
+            type: String, 
+            required: true 
+        },  // Example: "09:00 AM"
+        end: { 
+            type: String, 
+            required: true 
+        },    // Example: "05:00 PM"
     },
 
     isActive: {

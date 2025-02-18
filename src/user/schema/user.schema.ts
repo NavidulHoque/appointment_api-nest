@@ -10,7 +10,7 @@ export const UserSchema = new Schema({
     username: {
         type: String,
         required: [true, 'Username is required'],
-        unique: [true, "Username already exists"],
+        unique: true,
         trim: true,
         minLength: [5, 'Username must be at least 5 characters long'],
         maxLength: [10, 'Username cannot exceed 10 characters'],

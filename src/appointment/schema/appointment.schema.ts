@@ -1,6 +1,3 @@
-/* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 import mongoose from "mongoose";
 
 const { Schema } = mongoose

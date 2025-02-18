@@ -1,10 +1,8 @@
-/* eslint-disable prettier/prettier */
-
 import { Connection } from 'mongoose';
 import { DoctorSchema } from '../schema'; 
 import { Doctor_MODEL } from '../schema';
 
-export const usersProviders = [
+export const doctorsProviders = [
   {
     provide: Doctor_MODEL,
     useFactory: (connection: Connection) => connection.model('Doctor', DoctorSchema),

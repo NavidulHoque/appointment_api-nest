@@ -21,11 +21,8 @@ export class AppointmentService {
         const { patientName, contactInformation, date, time, doctorId } = dto
 
         try {
-            const doctor = mongoose.Types.ObjectId.isValid(doctorId) && await this.doctorModel.findById(doctorId)
 
-            if (!doctor) {
-                this.throwNotFoundError("Doctor not Found")
-            }
+            this.validateId(doctorId, this.doctorModel, "Doctor")
 
             const appointment = await this.appointmentModel.create({ patientName, contactInformation, date, time, doctorId })
 
@@ -186,9 +183,7 @@ export class AppointmentService {
         }
     }
 
-    private throwNotFoundError(message: string) {
-        throw new NotFoundException(message)
-    }
+    
 
     private async validateId(id: string, model: any, entityName: string) {
 
@@ -196,16 +191,18 @@ export class AppointmentService {
             const entity = mongoose.Types.ObjectId.isValid(id) && await model.findById(id)
     
             if (!entity) {
-                return { 
-                    message: `${entityName} not found` 
-                }
+                this.throwNotFoundError(`${entityName} not found`)
             }
-    
-            
+
+            return
         } 
         
         catch (error) {
             
         }
     };
+
+    private throwNotFoundError(message: string) {
+        throw new NotFoundException(message)
+    }
 }

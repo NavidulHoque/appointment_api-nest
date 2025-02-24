@@ -7,7 +7,8 @@ import { UserModule } from './user/user.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { DatabaseModule } from './database/database.module';
-import { AppController } from './app.controller'; 
+import { AppController } from './app.controller';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [ConfigModule.forRoot(), AuthModule, UserModule, AppointmentModule, DoctorModule, DatabaseModule],

@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { AuthGuard } from 'src/auth/guard';
 import { AppointmentDto } from './dto';
+
 
 @UseGuards(AuthGuard)
 @Controller('appointments')
@@ -20,17 +21,17 @@ export class AppointmentController {
     }
 
     @Get("/:id")
-    getAnAppointment() {
-        this.appointmentService.getAnAppointment()
+    getAnAppointment(@Param('id') id: string) {
+        this.appointmentService.getAnAppointment(id)
     }
 
     @Put("/:id")
-    updateAppointment(@Body() dto: AppointmentDto) {
-        this.appointmentService.updateAppointment(dto)
+    updateAppointment(@Body() dto: AppointmentDto, @Param('id') id: string) {
+        this.appointmentService.updateAppointment(dto, id)
     }
 
     @Delete("/:id")
-    deleteAppointment() {
-        this.appointmentService.deleteAppointment()
+    deleteAppointment(@Param('id') id: string) {
+        this.appointmentService.deleteAppointment(id)
     }
 }

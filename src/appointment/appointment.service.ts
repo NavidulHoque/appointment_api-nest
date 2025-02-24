@@ -96,13 +96,11 @@ export class AppointmentService {
 
         try {
 
+            this.validateId(id, this.appointmentModel, "Appointment")
+
             const appointment = await this.appointmentModel.findById(id)
                 .populate("doctorId")
                 .lean()
-
-            if (!appointment) {
-                this.throwNotFoundError('Appointment not found')
-            }
 
             const { patientName, contactInformation, date, time, doctorId: { _id, name, specialization, experience, contact, workingHours, isActive } } = appointment as any
 
@@ -122,6 +120,9 @@ export class AppointmentService {
         const { patientName, contactInformation, date, time, doctorId } = dto
 
         try {
+
+            this.validateId(id, this.appointmentModel, "Appointment")
+
             const appointment = await this.appointmentModel.findByIdAndUpdate(id, {
                 patientName,
                 contactInformation,
@@ -165,11 +166,8 @@ export class AppointmentService {
     async deleteAppointment(id: string) {
 
         try {
-            const appointment = mongoose.Types.ObjectId.isValid(id) && await this.appointmentModel.findById(id)
 
-            if (!appointment) {
-                this.throwNotFoundError("Appointment not found")
-            }
+            this.validateId(id, this.appointmentModel, "Appointment")
 
             await this.appointmentModel.findByIdAndDelete(id)
 
@@ -182,8 +180,6 @@ export class AppointmentService {
 
         }
     }
-
-    
 
     private async validateId(id: string, model: any, entityName: string) {
 

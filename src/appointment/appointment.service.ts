@@ -1,10 +1,12 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Appointment_MODEL } from './schema';
 import mongoose, { Model } from 'mongoose';
 import { Appointment } from './interface';
 import { AppointmentDto } from './dto';
 import { Doctor_MODEL } from 'src/doctor/schema';
 import { Doctor } from 'src/doctor/interface';
+import { ValidationIdService } from 'src/common/validationId.service';
+
 
 @Injectable()
 export class AppointmentService {
@@ -13,7 +15,8 @@ export class AppointmentService {
         @Inject(Appointment_MODEL)
         private appointmentModel: Model<Appointment>,
         @Inject(Doctor_MODEL)
-        private doctorModel: Model<Doctor>
+        private doctorModel: Model<Doctor>,
+        private validationIdService: ValidationIdService
     ) { }
 
     async createAppointment(dto: AppointmentDto) {
@@ -22,7 +25,7 @@ export class AppointmentService {
 
         try {
 
-            this.validateId(doctorId, this.doctorModel, "Doctor")
+            this.validationIdService.validateId(doctorId, this.doctorModel, "Doctor")
 
             const appointment = await this.appointmentModel.create({ patientName, contactInformation, date, time, doctorId })
 
@@ -96,7 +99,7 @@ export class AppointmentService {
 
         try {
 
-            this.validateId(id, this.appointmentModel, "Appointment")
+            this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
 
             const appointment = await this.appointmentModel.findById(id)
                 .populate("doctorId")
@@ -121,7 +124,7 @@ export class AppointmentService {
 
         try {
 
-            this.validateId(id, this.appointmentModel, "Appointment")
+            this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
 
             const appointment = await this.appointmentModel.findByIdAndUpdate(id, {
                 patientName,
@@ -132,7 +135,7 @@ export class AppointmentService {
             },
                 { new: true, runValidators: true })
 
-            const populatedAppointment = appointment && await appointment.populate("doctorId", "name")
+            const populatedAppointment = appointment && await appointment.populate("doctorId")
 
             const { doctorId: { name, specialization, experience, contact, workingHours, isActive } } = populatedAppointment as any
 
@@ -167,7 +170,7 @@ export class AppointmentService {
 
         try {
 
-            this.validateId(id, this.appointmentModel, "Appointment")
+            this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
 
             await this.appointmentModel.findByIdAndDelete(id)
 
@@ -179,26 +182,5 @@ export class AppointmentService {
         catch (error) {
 
         }
-    }
-
-    private async validateId(id: string, model: any, entityName: string) {
-
-        try {
-            const entity = mongoose.Types.ObjectId.isValid(id) && await model.findById(id)
-    
-            if (!entity) {
-                this.throwNotFoundError(`${entityName} not found`)
-            }
-
-            return
-        } 
-        
-        catch (error) {
-            
-        }
-    };
-
-    private throwNotFoundError(message: string) {
-        throw new NotFoundException(message)
     }
 }

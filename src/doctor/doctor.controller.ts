@@ -1,6 +1,7 @@
-import { Controller, Delete, Get, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard';
 import { DoctorService } from './doctor.service';
+import { DoctorDto } from './dto';
 
 @UseGuards(AuthGuard)
 @Controller('doctors')
@@ -9,8 +10,8 @@ export class DoctorController {
     constructor(private doctorService: DoctorService) { }
 
     @Post("/")
-    createDoctor() {
-        this.doctorService.createDoctor()
+    createDoctor(@Body() dto: DoctorDto) {
+        this.doctorService.createDoctor(dto)
     }
 
     @Get("/")
@@ -19,17 +20,17 @@ export class DoctorController {
     }
 
     @Get("/:id")
-    getADoctor() {
-        this.doctorService.getADoctor()
+    getADoctor(@Param('id') id: string) {
+        this.doctorService.getADoctor(id)
     }
 
     @Put("/:id")
-    updateDoctor() {
-        this.doctorService.updateDoctor()
+    updateDoctor(@Body() dto: DoctorDto, @Param('id') id: string) {
+        this.doctorService.updateDoctor(dto, id)
     }
 
     @Delete("/:id")
-    deleteDoctor() {
-        this.doctorService.deleteDoctor()
+    deleteDoctor(@Param('id') id: string) {
+        this.doctorService.deleteDoctor(id)
     }
 }

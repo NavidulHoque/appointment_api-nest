@@ -3,7 +3,6 @@ import { DoctorDto } from './dto';
 import { Doctor_MODEL } from './schema';
 import { Model } from 'mongoose';
 import { Doctor } from './interface';
-import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { ValidationIdService } from 'src/common/validationId.service';
 
 @Injectable()
@@ -12,7 +11,6 @@ export class DoctorService {
     constructor(
         @Inject(Doctor_MODEL)
         private doctorModel: Model<Doctor>,
-        private handleErrorsService: HandleErrorsService,
         private validationIdService: ValidationIdService
     ){}
 
@@ -39,11 +37,10 @@ export class DoctorService {
 
         try {
 
-            const doctors = await this.doctorModel.find()
+            const doctors = await this.doctorModel.find({})
 
             return {
-                doctors,
-                message: "Doctors fetched successfully"
+                doctors
             }
         } 
         
@@ -55,6 +52,14 @@ export class DoctorService {
     async getADoctor(id: string){
 
         try {
+
+            await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
+
+            const doctor = await this.doctorModel.findById(id)
+
+            return {
+                doctor
+            }
             
         } 
         
@@ -65,8 +70,17 @@ export class DoctorService {
 
     async updateDoctor(dto: DoctorDto, id: string){
 
+        const {name, specialization, experience, contact, workingHours, isActive} = dto
+
         try {
-            
+            await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
+
+            const doctor = await this.doctorModel.findByIdAndUpdate(id, {name, specialization, experience, contact, workingHours, isActive}, {new: true, runValidators: true})
+
+            return {
+                doctor,
+                message: "Doctor updated successfully"
+            }
         } 
         
         catch (error) {
@@ -77,7 +91,13 @@ export class DoctorService {
     async deleteDoctor(id: string){
 
         try {
-            
+            await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
+
+            await this.doctorModel.findByIdAndDelete(id)
+
+            return {
+                message: "Doctor deleted successfully"
+            }
         } 
         
         catch (error) {

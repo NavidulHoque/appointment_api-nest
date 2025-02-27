@@ -22,14 +22,15 @@ export const DoctorSchema = new Schema({
     experience: {
         type: Number,
         required: [true, 'Experience is required'],
-        min: [1, 'Experience must be at least 1 year'],
+        min: [1, 'Experience must be at least 1 year']
     },
 
     contact: {
         phone: {
             type: String,
             required: [true, 'Phone number is required'],
-            match: [/^\d{10,15}$/, 'Invalid phone number format'],
+            trim: true,
+            match: [/^\d{11}$/, 'Doctor phone number must be exactly 11 digits']
         },
         email: {
             type: String,

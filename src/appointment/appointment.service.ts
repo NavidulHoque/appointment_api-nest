@@ -99,7 +99,7 @@ export class AppointmentService {
 
         try {
 
-            this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
+            await this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
 
             const appointment = await this.appointmentModel.findById(id)
                 .populate("doctorId")
@@ -124,7 +124,7 @@ export class AppointmentService {
 
         try {
 
-            this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
+            await this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
 
             const appointment = await this.appointmentModel.findByIdAndUpdate(id, {
                 patientName,
@@ -170,7 +170,7 @@ export class AppointmentService {
 
         try {
 
-            this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
+            await this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
 
             await this.appointmentModel.findByIdAndDelete(id)
 

@@ -45,11 +45,11 @@ export const DoctorSchema = new Schema({
     workingHours: {
         start: { 
             type: String, 
-            required: true 
+            required: [true, 'Start time is required'] 
         },  // Example: "09:00 AM"
         end: { 
             type: String, 
-            required: true 
+            required: [true, 'End time is required'] 
         },    // Example: "05:00 PM"
     },
 

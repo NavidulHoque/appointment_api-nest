@@ -23,6 +23,7 @@ export const AppointmentSchema = new Schema({
         email: {
             type: String,
             trim: true,
+            lowercase: true,
             required: [true, 'Patient email is required'],
             match: [/^\S+@\S+\.\S+$/, 'Invalid email format']
         }

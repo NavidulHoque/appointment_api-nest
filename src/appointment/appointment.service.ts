@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Appointment_MODEL } from './schema';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { Appointment } from './interface';
 import { AppointmentDto } from './dto';
 import { Doctor_MODEL } from 'src/doctor/schema';

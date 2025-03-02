@@ -8,7 +8,7 @@ import { AppointmentDto } from './dto';
 @Controller('appointments')
 export class AppointmentController {
 
-    constructor(private appointmentService: AppointmentService) { }
+    constructor(private appointmentService: AppointmentService) {}
 
     @Post("/")
     createAppointment(@Body() dto: AppointmentDto) {

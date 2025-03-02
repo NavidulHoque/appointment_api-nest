@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import mongoose from "mongoose";
 
 const { Schema } = mongoose;
@@ -45,18 +44,20 @@ export const DoctorSchema = new Schema({
     workingHours: {
         start: { 
             type: String, 
-            required: [true, 'Start time is required'] 
-        },  // Example: "09:00 AM"
+            required: [true, 'Start time is required'],
+            match: [/^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/, 'Invalid time format, for example use "03:00 PM" format']
+        },  
         end: { 
             type: String, 
-            required: [true, 'End time is required'] 
-        },    // Example: "05:00 PM"
+            required: [true, 'End time is required'],
+            match: [/^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/, 'Invalid time format, for example use "03:00 PM" format']
+        }, 
     },
 
     isActive: {
         type: Boolean,
-        default: true,
+        default: true
     }
 
-}, { timestamps: true });
+}, { timestamps: true })
 

@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { AuthDto } from './dto';
 import { Model } from 'mongoose';
 import { User } from 'src/user/interface'; 
@@ -6,6 +6,7 @@ import * as argon from "argon2";
 import { USER_MODEL } from 'src/user/schema'; 
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { HandleErrorsService } from 'src/common/handleErrors.service';
 
 @Injectable({})
 export class AuthService {
@@ -14,7 +15,8 @@ export class AuthService {
     @Inject(USER_MODEL)
     private userModel: Model<User>,
     private jwtService: JwtService,
-    private config: ConfigService
+    private config: ConfigService,
+    private handleErrorsService: HandleErrorsService
   ) { }
 
   async register(dto: AuthDto) {
@@ -26,7 +28,7 @@ export class AuthService {
       const user = await this.fetchUser(username)
 
       if (user) {
-        this.throwError("User already exists")
+        this.handleErrorsService.throwBadRequestError("User already exists")
       }
 
       const newUser = new this.userModel({username, password})
@@ -37,19 +39,7 @@ export class AuthService {
     }
 
     catch (error) {
-
-      if (error.name === "ValidationError") {
-
-        const message: string[] = [];
-
-        Object.keys(error.errors).forEach((field) => {
-          message.push(error.errors[field].message);
-        });
-
-        this.throwError(message)
-      }
-
-      throw error; //throws server error
+      this.handleErrorsService.handleError(error)
     }
   }
 
@@ -61,7 +51,7 @@ export class AuthService {
       const user = await this.fetchUser(username)
 
       if (!user) {
-        this.throwError("User not found");
+        this.handleErrorsService.throwBadRequestError("User not found");
       }
 
       const { _id, password: hashedPassword } = user;
@@ -69,7 +59,7 @@ export class AuthService {
       const isMatched = await this.comparePassword(plainPassword, hashedPassword)
 
       if (!isMatched) {
-        this.throwError("Password invalid")
+        this.handleErrorsService.throwBadRequestError("Password invalid")
       }
 
       const token = await this.generateToken(user)
@@ -106,17 +96,11 @@ export class AuthService {
     const payload = { sub: _id, username };
     const secret = this.config.get('JWT_SECRET')
 
-    console.log(secret)
-
     const token = await this.jwtService.signAsync(payload, {
       secret,
       expiresIn: '1d'
     })
 
     return token
-  }
-
-  private throwError(message: string | string[]): void{
-    throw new BadRequestException(message);
   }
 }

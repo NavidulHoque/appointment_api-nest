@@ -3,6 +3,21 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException,
 @Injectable()
 export class HandleErrorsService {
 
+    handleError(error: any) {
+        if (error.name === "ValidationError") {
+
+            const message: string[] = [];
+
+            Object.keys(error.errors).forEach((field) => {
+                message.push(error.errors[field].message);
+            });
+
+            this.throwBadRequestError(message)
+        }
+
+        throw error; //throws server error
+    }
+
     throwNotFoundError(message: string) {
         throw new NotFoundException(message, {
             cause: new Error(),
@@ -10,7 +25,7 @@ export class HandleErrorsService {
         })
     }
 
-    throwBadRequestError(message: string) {
+    throwBadRequestError(message: string | string[]) {
         throw new BadRequestException(message, {
             cause: new Error(),
             description: 'Your requested data is not valid',

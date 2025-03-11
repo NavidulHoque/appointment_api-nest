@@ -4,6 +4,7 @@ import { Doctor_MODEL } from './schema';
 import { Model } from 'mongoose';
 import { Doctor } from './interface';
 import { ValidationIdService } from 'src/common/validationId.service';
+import { HandleErrorsService } from 'src/common/handleErrors.service';
 
 @Injectable()
 export class DoctorService {
@@ -11,29 +12,30 @@ export class DoctorService {
     constructor(
         @Inject(Doctor_MODEL)
         private doctorModel: Model<Doctor>,
-        private validationIdService: ValidationIdService
-    ){}
+        private validationIdService: ValidationIdService,
+        private handleErrorsService: HandleErrorsService
+    ) { }
 
-    async createDoctor(dto: DoctorDto){
+    async createDoctor(dto: DoctorDto) {
 
-        const {name, specialization, experience, contact, workingHours, isActive} = dto
+        const { name, specialization, experience, contact, workingHours, isActive } = dto
 
         try {
 
-            const doctor = await this.doctorModel.create({name, specialization, experience, contact, workingHours, isActive})
+            const doctor = await this.doctorModel.create({ name, specialization, experience, contact, workingHours, isActive })
 
             return {
                 doctor,
                 message: "Doctor created successfully"
             }
-        } 
-        
+        }
+
         catch (error) {
-            
+            this.handleErrorsService.handleError(error)
         }
     }
 
-    async getAllDoctors(){
+    async getAllDoctors() {
 
         try {
 
@@ -42,14 +44,14 @@ export class DoctorService {
             return {
                 doctors
             }
-        } 
-        
+        }
+
         catch (error) {
-            
+            this.handleErrorsService.handleError(error)
         }
     }
 
-    async getADoctor(id: string){
+    async getADoctor(id: string) {
 
         try {
 
@@ -60,35 +62,35 @@ export class DoctorService {
             return {
                 doctor
             }
-            
-        } 
-        
+
+        }
+
         catch (error) {
-            
+            this.handleErrorsService.handleError(error)
         }
     }
 
-    async updateDoctor(dto: DoctorDto, id: string){
+    async updateDoctor(dto: DoctorDto, id: string) {
 
-        const {name, specialization, experience, contact, workingHours, isActive} = dto
+        const { name, specialization, experience, contact, workingHours, isActive } = dto
 
         try {
             await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
 
-            const doctor = await this.doctorModel.findByIdAndUpdate(id, {name, specialization, experience, contact, workingHours, isActive}, {new: true, runValidators: true})
+            const doctor = await this.doctorModel.findByIdAndUpdate(id, { name, specialization, experience, contact, workingHours, isActive }, { new: true, runValidators: true })
 
             return {
                 doctor,
                 message: "Doctor updated successfully"
             }
-        } 
-        
+        }
+
         catch (error) {
-            
+            this.handleErrorsService.handleError(error)
         }
     }
 
-    async deleteDoctor(id: string){
+    async deleteDoctor(id: string) {
 
         try {
             await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
@@ -98,10 +100,10 @@ export class DoctorService {
             return {
                 message: "Doctor deleted successfully"
             }
-        } 
-        
+        }
+
         catch (error) {
-            
+            this.handleErrorsService.handleError(error)
         }
     }
 }

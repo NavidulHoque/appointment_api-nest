@@ -6,6 +6,7 @@ import { AppointmentDto } from './dto';
 import { Doctor_MODEL } from 'src/doctor/schema';
 import { Doctor } from 'src/doctor/interface';
 import { ValidationIdService } from 'src/common/validationId.service';
+import { HandleErrorsService } from 'src/common/handleErrors.service';
 
 
 @Injectable()
@@ -16,7 +17,8 @@ export class AppointmentService {
         private appointmentModel: Model<Appointment>,
         @Inject(Doctor_MODEL)
         private doctorModel: Model<Doctor>,
-        private validationIdService: ValidationIdService
+        private validationIdService: ValidationIdService,
+        private handleErrorsService: HandleErrorsService
     ) { }
 
     async createAppointment(dto: AppointmentDto) {
@@ -55,7 +57,7 @@ export class AppointmentService {
         }
 
         catch (error) {
-
+            this.handleErrorsService.handleError(error)
         }
 
     }
@@ -67,7 +69,7 @@ export class AppointmentService {
                 .populate("doctorId")
                 .lean() // Convert the document to a plain JavaScript object which optimizes the performance
 
-            const formattedAppointments = appointments.map(({ _id, patientName, contactInformation, date, time, doctorId: {_id: id, name, specialization, experience, contact, workingHours, isActive} }) => ({
+            const formattedAppointments = appointments.map(({ _id, patientName, contactInformation, date, time, doctorId: { _id: id, name, specialization, experience, contact, workingHours, isActive } }) => ({
                 id: _id,
                 patientName,
                 contactInformation,
@@ -90,7 +92,7 @@ export class AppointmentService {
         }
 
         catch (error) {
-
+            this.handleErrorsService.handleError(error)
         }
 
     }
@@ -113,7 +115,7 @@ export class AppointmentService {
         }
 
         catch (error) {
-
+            this.handleErrorsService.handleError(error)
         }
 
     }
@@ -148,11 +150,11 @@ export class AppointmentService {
                     time,
                     doctor: {
                         id: doctorId,
-                        name, 
-                        specialization, 
-                        experience, 
-                        contact, 
-                        workingHours, 
+                        name,
+                        specialization,
+                        experience,
+                        contact,
+                        workingHours,
                         isActive
                     }
                 },
@@ -161,7 +163,7 @@ export class AppointmentService {
         }
 
         catch (error) {
-
+            this.handleErrorsService.handleError(error)
         }
 
     }
@@ -180,7 +182,7 @@ export class AppointmentService {
         }
 
         catch (error) {
-
+            this.handleErrorsService.handleError(error)
         }
     }
 }

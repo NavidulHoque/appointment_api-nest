@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AuthDto } from './dto';
 import { Model } from 'mongoose';
-import { User } from 'src/user/interface'; 
+import { User } from 'src/user/interface';
 import * as argon from "argon2";
-import { USER_MODEL } from 'src/user/schema'; 
+import { USER_MODEL } from 'src/user/schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
@@ -21,7 +21,7 @@ export class AuthService {
 
   async register(dto: AuthDto) {
 
-    const {username, password} = dto
+    const { username, password } = dto
 
     try {
 
@@ -31,7 +31,7 @@ export class AuthService {
         this.handleErrorsService.throwBadRequestError("User already exists")
       }
 
-      const newUser = new this.userModel({username, password})
+      const newUser = new this.userModel({ username, password })
 
       await newUser.save()
 
@@ -45,7 +45,7 @@ export class AuthService {
 
   async login(dto: AuthDto) {
 
-    const {username, password: plainPassword} = dto
+    const { username, password: plainPassword } = dto
 
     try {
       const user = await this.fetchUser(username)
@@ -76,14 +76,14 @@ export class AuthService {
     }
   }
 
-  private async fetchUser(username: string): Promise<any>{
+  private async fetchUser(username: string): Promise<any> {
 
-    const user = await this.userModel.findOne({username})
+    const user = await this.userModel.findOne({ username })
 
     return user
   }
 
-  private async comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean>{
+  private async comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
     const isMatched = await argon.verify(hashedPassword, plainPassword)
 
     return isMatched

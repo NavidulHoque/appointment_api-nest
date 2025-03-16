@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-
 import * as mongoose from "mongoose";
 import * as argon from "argon2";
 

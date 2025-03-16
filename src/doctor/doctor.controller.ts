@@ -11,26 +11,26 @@ export class DoctorController {
 
     @Post("/")
     createDoctor(@Body() dto: DoctorDto) {
-        this.doctorService.createDoctor(dto)
+        return this.doctorService.createDoctor(dto)
     }
 
     @Get("/")
     getAllDoctors() {
-        this.doctorService.getAllDoctors()
+        return this.doctorService.getAllDoctors()
     }
 
     @Get("/:id")
     getADoctor(@Param('id') id: string) {
-        this.doctorService.getADoctor(id)
+        return this.doctorService.getADoctor(id)
     }
 
     @Put("/:id")
     updateDoctor(@Body() dto: DoctorDto, @Param('id') id: string) {
-        this.doctorService.updateDoctor(dto, id)
+        return this.doctorService.updateDoctor(dto, id)
     }
 
     @Delete("/:id")
     deleteDoctor(@Param('id') id: string) {
-        this.doctorService.deleteDoctor(id)
+        return this.doctorService.deleteDoctor(id)
     }
 }

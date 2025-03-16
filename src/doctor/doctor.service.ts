@@ -22,16 +22,16 @@ export class DoctorService {
 
         try {
 
-            const doctor = await this.doctorModel.findOne({ 'contact.email': contact.email })
+            const existingDoctor = await this.doctorModel.findOne({ 'contact.email': contact.email });
 
-            if (doctor) {
-                this.handleErrorsService.throwBadRequestError("Email already exists")
+            if (existingDoctor) {
+                return this.handleErrorsService.throwBadRequestError("Email already exists");
             }
 
-            await this.doctorModel.create({ name, specialization, experience, contact, workingHours, isActive })
+            const newDoctor = await this.doctorModel.create({ name, specialization, experience, contact, workingHours, isActive })
 
             return {
-                doctor,
+                doctor: newDoctor,
                 message: "Doctor created successfully"
             }
         }
@@ -68,7 +68,6 @@ export class DoctorService {
             return {
                 doctor
             }
-
         }
 
         catch (error) {

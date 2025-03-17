@@ -45,7 +45,7 @@ export class DoctorService {
 
         try {
 
-            const doctors = await this.doctorModel.find({})
+            const doctors = await this.doctorModel.find({}).select('-createdAt -updatedAt -__v')
 
             return {
                 doctors
@@ -63,7 +63,7 @@ export class DoctorService {
 
             await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
 
-            const doctor = await this.doctorModel.findById(id)
+            const doctor = await this.doctorModel.findById(id).select('-createdAt -updatedAt -__v')
 
             return {
                 doctor

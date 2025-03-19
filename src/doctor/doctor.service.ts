@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DoctorDto } from './dto';
 import { Doctor_MODEL } from './schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Doctor } from './interface';
 import { ValidationIdService } from 'src/common/validationId.service';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
@@ -81,6 +81,12 @@ export class DoctorService {
 
         try {
             await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
+
+            const existingDoctor = await this.doctorModel.findOne({ 'contact.email': contact.email }) as ({ _id: Types.ObjectId })
+
+            if (existingDoctor && existingDoctor._id.toString() !== id) {
+                return this.handleErrorsService.throwBadRequestError("Email already exists");
+            }
 
             const doctor = await this.doctorModel.findByIdAndUpdate(id, { name, specialization, experience, contact, workingHours, isActive }, { new: true, runValidators: true })
 

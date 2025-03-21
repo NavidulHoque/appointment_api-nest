@@ -4,29 +4,10 @@ const { Schema } = mongoose
 
 export const AppointmentSchema = new Schema({
 
-    patientName: {
-        type: String,
-        required: [true, 'Patient Name is required'],
-        trim: true,
-        minLength: [5, 'Patient Name must be at least 5 characters long'],
-        match: [/^[a-zA-Z. ]+$/, 'Patient Name can only contain alphabetic characters, space and dot (no special characters and numbers are allowed)'],
-    },
-
-    contactInformation: {
-
-        phone: {
-            type: String,
-            trim: true,
-            required: [true, 'Patient phone number is required'],
-            match: [/^\d{11}$/, 'Patient phone number must be exactly 11 digits']
-        },
-        email: {
-            type: String,
-            trim: true,
-            lowercase: true,
-            required: [true, 'Patient email is required'],
-            match: [/^\S+@\S+\.\S+$/, 'Invalid email format']
-        }
+    patientId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'User ID is required']
     },
 
     date: {

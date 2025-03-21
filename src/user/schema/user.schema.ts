@@ -15,6 +15,35 @@ export const UserSchema = new Schema({
         match: [/^[a-zA-Z0-9]+$/, 'Username can only contain alphanumeric characters (no special characters and space are allowed)'],
     },
 
+    fullName: {
+        type: String,
+        required: [true, 'Full name is required'],
+        trim: true,
+        minLength: [5, 'Full name must be at least 5 characters long'],
+        match: [/^[a-zA-Z. ]+$/, 'Full name can only contain alphabetic characters, space and dot (no special characters and numbers are allowed)'],
+    },
+
+    phone: {
+        type: String,
+        trim: true,
+        required: [true, 'Patient phone number is required'],
+        match: [/^\d{11}$/, 'Patient phone number must be exactly 11 digits']
+    },
+
+    email: {
+        type: String,
+        trim: true,
+        lowercase: true,
+        required: [true, 'Patient email is required'],
+        match: [/^\S+@\S+\.\S+$/, 'Invalid email format']
+    },
+    
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user"
+    },
+
     password: {
         type: String,
         required: [true, 'Password is required'],

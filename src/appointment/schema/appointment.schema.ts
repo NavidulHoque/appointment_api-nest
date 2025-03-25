@@ -10,6 +10,12 @@ export const AppointmentSchema = new Schema({
         required: [true, 'User ID is required']
     },
 
+    doctorId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Doctor',
+        required: [true, 'Doctor ID is required']
+    },
+
     date: {
         type: String,
         required: [true, 'Date is required'],
@@ -35,13 +41,7 @@ export const AppointmentSchema = new Schema({
 
                 return true
             },
-            message: "Appointment time must be in the future.",
+            message: "Appointment time must be in the future."
         },
-    },
-
-    doctorId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Doctor',
-        required: [true, 'Doctor ID is required']
     },
 })

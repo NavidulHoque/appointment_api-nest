@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/auth/guard'; 
+import { AuthGuard } from 'src/auth/guard';
 import { User } from './decorator';
 
 @UseGuards(AuthGuard)
@@ -7,8 +7,8 @@ import { User } from './decorator';
 export class UserController {
 
     @Get("/")
-    readUser(@User() user: any){
-        const {sub, username} = user
-        return {id: sub, username}
+    readUser(@User() user: any) {
+        const { username, fullName, phone, email } = user
+        return { username, fullName, phone, email }
     }
 }

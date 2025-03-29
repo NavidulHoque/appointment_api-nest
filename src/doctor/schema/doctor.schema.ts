@@ -57,7 +57,14 @@ export const DoctorSchema = new Schema({
     isActive: {
         type: Boolean,
         default: true
-    }
+    },
+
+    patients: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
 
 }, { timestamps: true })
 

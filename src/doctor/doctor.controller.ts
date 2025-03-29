@@ -2,15 +2,21 @@ import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nes
 import { AuthGuard } from 'src/auth/guard';
 import { DoctorService } from './doctor.service';
 import { DoctorDto } from './dto';
+import { CheckRoleService } from 'src/common/checkRole.service';
+import { User } from 'src/user/decorator';
 
 @UseGuards(AuthGuard)
 @Controller('doctors')
 export class DoctorController {
 
-    constructor(private doctorService: DoctorService) { }
+    constructor(
+        private doctorService: DoctorService,
+        private checkRoleService: CheckRoleService
+    ) { }
 
     @Post("/")
-    createDoctor(@Body() dto: DoctorDto) {
+    createDoctor(@Body() dto: DoctorDto, @User() user: any) {
+        this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.createDoctor(dto)
     }
 
@@ -25,12 +31,14 @@ export class DoctorController {
     }
 
     @Put("/:id")
-    updateDoctor(@Body() dto: DoctorDto, @Param('id') id: string) {
+    updateDoctor(@Body() dto: DoctorDto, @Param('id') id: string, @User() user: any) {
+        this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.updateDoctor(dto, id)
     }
 
     @Delete("/:id")
-    deleteDoctor(@Param('id') id: string) {
+    deleteDoctor(@Param('id') id: string, @User() user: any) {
+        this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.deleteDoctor(id)
     }
 }

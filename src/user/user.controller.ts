@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard';
 import { User } from './decorator';
 
@@ -11,4 +11,6 @@ export class UserController {
         const { username, fullName, phone, email } = user
         return { username, fullName, phone, email }
     }
+
+    
 }

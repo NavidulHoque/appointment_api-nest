@@ -21,17 +21,17 @@ export class AuthService {
 
   async register(dto: AuthDto) {
 
-    const { username, password } = dto
+    const { username, fullName, phone, email, password } = dto
 
     try {
 
-      const user = await this.fetchUser(username)
+      const user = await this.fetchUser(username, email)
 
       if (user) {
         this.handleErrorsService.throwBadRequestError("User already exists")
       }
 
-      const newUser = new this.userModel({ username, password })
+      const newUser = new this.userModel({ username, fullName, phone, email, password })
 
       await newUser.save()
 
@@ -45,10 +45,10 @@ export class AuthService {
 
   async login(dto: AuthDto) {
 
-    const { username, password: plainPassword } = dto
+    const { username, email, password: plainPassword } = dto
 
     try {
-      const user = await this.fetchUser(username)
+      const user = await this.fetchUser(username, email)
 
       if (!user) {
         this.handleErrorsService.throwBadRequestError("User not found");
@@ -76,9 +76,11 @@ export class AuthService {
     }
   }
 
-  private async fetchUser(username: string): Promise<any> {
-
-    const user = await this.userModel.findOne({ username })
+  private async fetchUser(username?: string, email?: string): Promise<any> {
+    
+    const user = await this.userModel.findOne({
+      $or: [{ username }, { email }]
+    });
 
     return user
   }

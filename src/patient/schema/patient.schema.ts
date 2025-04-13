@@ -1,17 +1,27 @@
-import {Schema} from "mongoose";
+import { Schema } from "mongoose";
 
 export const PatientSchema = new Schema({
 
-    patient: {
+    userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: [true, 'User ID is required']
     },
 
     doctors: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Doctor',
-        required: [true, 'Doctor ID is required']
+        doctor: {
+            type: Schema.Types.ObjectId,
+            ref: 'Doctor',
+            required: [true, 'Doctor ID is required']
+        },
+        isPaid: {
+            type: Boolean,
+            default: false
+        },
+        isCompleted: {
+            type: Boolean,
+            default: false
+        },
     }]
 
 }, { timestamps: true })

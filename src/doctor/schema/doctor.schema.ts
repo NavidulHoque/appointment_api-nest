@@ -4,12 +4,10 @@ const { Schema } = mongoose;
 
 export const DoctorSchema = new Schema({
 
-    name: {
-        type: String,
-        required: [true, 'Doctor name is required'],
-        trim: true,
-        minLength: [5, 'Doctor name must be at least 5 characters long'],
-        match: [/^[a-zA-Z. ]+$/, 'Doctor name can only contain alphabetic characters, space, and dot (no special characters and numbers are allowed)'],
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'User ID is required']
     },
 
     specialization: {
@@ -18,40 +16,44 @@ export const DoctorSchema = new Schema({
         trim: true,
     },
 
+    education: {
+        type: String,
+        required: [true, 'Education is required'],
+        trim: true,
+        minLength: [5, 'Education must be at least 5 characters long'],
+        match: [/^[a-zA-Z., ]+$/, 'Education can only contain alphabetic characters, space, dot and comma (no special characters and numbers are allowed)'],
+    },
+
     experience: {
         type: Number,
         required: [true, 'Experience is required'],
         min: [1, 'Experience must be at least 1 year']
     },
 
-    contact: {
-        phone: {
-            type: String,
-            required: [true, 'Phone number is required'],
-            trim: true,
-            match: [/^\d{11}$/, 'Doctor phone number must be exactly 11 digits']
-        },
-        email: {
-            type: String,
-            required: [true, 'Email is required'],
-            unique: true,
-            lowercase: true,
-            trim: true,
-            match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
-        }
+    aboutMe: {
+        type: String,
+        required: [true, 'About me is required'],
+        trim: true,
+        minLength: [10, 'About me must be at least 10 characters long'],
+        match: [/^[a-zA-Z0-9., ]+$/, 'About me can only contain alphanumeric characters, space, dot and comma (no special characters are allowed)'],
+    },
+
+    fees: {
+        type: Number,
+        min: [20, 'Fees must be a positive number']
     },
 
     workingHours: {
-        start: { 
-            type: String, 
+        start: {
+            type: String,
             required: [true, 'Start time is required'],
             match: [/^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/, 'Invalid time format, for example use 03:00 PM format']
-        },  
-        end: { 
-            type: String, 
+        },
+        end: {
+            type: String,
             required: [true, 'End time is required'],
             match: [/^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/, 'Invalid time format, for example use 03:00 PM format']
-        }, 
+        },
     },
 
     isActive: {

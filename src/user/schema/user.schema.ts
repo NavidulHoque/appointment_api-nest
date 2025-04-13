@@ -5,29 +5,12 @@ const { Schema } = mongoose
 
 export const UserSchema = new Schema({
 
-    username: {
-        type: String,
-        required: [true, 'Username is required'],
-        unique: true,
-        trim: true,
-        minLength: [5, 'Username must be at least 5 characters long'],
-        maxLength: [10, 'Username cannot exceed 10 characters'],
-        match: [/^[a-zA-Z0-9]+$/, 'Username can only contain alphanumeric characters (no special characters and space are allowed)'],
-    },
-
     fullName: {
         type: String,
         required: [true, 'Full name is required'],
         trim: true,
         minLength: [5, 'Full name must be at least 5 characters long'],
         match: [/^[a-zA-Z. ]+$/, 'Full name can only contain alphabetic characters, space and dot (no special characters and numbers are allowed)'],
-    },
-
-    phone: {
-        type: String,
-        trim: true,
-        required: [true, 'Patient phone number is required'],
-        match: [/^\d{11}$/, 'Patient phone number must be exactly 11 digits']
     },
 
     email: {
@@ -41,8 +24,29 @@ export const UserSchema = new Schema({
 
     role: {
         type: String,
-        enum: ["user", "admin"],
-        default: "user"
+        enum: ["patient", "doctor", "admin"],
+        default: "patient"
+    },
+
+    phone: {
+        type: String,
+        trim: true,
+        match: [/^\d{11}$/, 'Phone number must be exactly 11 digits']
+    },
+
+    gender:{
+        type: String,
+        enum: ["male", "female", "other"],
+    },
+
+    birthDate: {
+        type: Date,
+    },
+
+    address: {
+        type: String,
+        trim: true,
+        minLength: [5, 'Address must be at least 5 characters long'],
     },
 
     password: {

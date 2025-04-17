@@ -3,6 +3,7 @@ import { AuthGuard } from 'src/auth/guard';
 import { User } from './decorator';
 import { AuthDto } from 'src/auth/dto';
 import { UserService } from './user.service';
+import { UserDto } from './dto';
 
 @UseGuards(AuthGuard)
 @Controller('users')
@@ -11,12 +12,12 @@ export class UserController {
     constructor(private userService: UserService) { }
 
     @Get("/")
-    getUser(@User() user: any) {
+    getUser(@User() user: UserDto) {
         return this.userService.getUser(user)
     }
 
     @Put("/")
-    updateUser(@Body() dto: AuthDto, @User() user: any) {
+    updateUser(@Body() dto: UserDto, @User() user: UserDto) {
         this.userService.updateUser(dto, user)
     }
 }

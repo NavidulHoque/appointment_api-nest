@@ -1,1 +1,0 @@
-export const Doctor_MODEL = 'Doctor_MODEL';

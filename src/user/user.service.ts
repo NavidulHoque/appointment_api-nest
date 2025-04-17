@@ -1,22 +1,20 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { USER_MODEL } from './schema';
-import { Model } from 'mongoose';
-import { User } from './interface';
+import { Injectable } from '@nestjs/common';
 import { AuthDto } from 'src/auth/dto';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { UserDto } from './dto';
 
 @Injectable()
 export class UserService {
 
     constructor(
-        @Inject(USER_MODEL)
-        private userModel: Model<User>,
+        private prisma: PrismaService,
         private handleErrorsService: HandleErrorsService
     ) { }
 
-    getUser(user: any) {
-        const { username, fullName, phone, email } = user
-        return { username, fullName, phone, email }
+    getUser(user: UserDto) {
+        const { fullName, email, phone, gender, birthDate, address} = user
+        return { fullName, email, phone, gender, birthDate, address}
     }
 
     updateUser(dto: AuthDto, user: any) {

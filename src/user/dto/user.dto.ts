@@ -22,8 +22,9 @@ export class UserDto {
     @IsEmail({}, { message: 'Invalid email format' })
     email: string;
 
+    @IsOptional()
     @IsEnum(Role, { message: 'Role must be patient, doctor or admin' })
-    role: Role;
+    role?: Role;
 
     @IsString()
     @IsOptional()

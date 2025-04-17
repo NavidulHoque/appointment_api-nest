@@ -1,1 +1,0 @@
-export const Appointment_MODEL = 'Appointment_MODEL';

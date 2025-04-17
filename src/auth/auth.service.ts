@@ -1,19 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AuthDto } from './dto';
 import { Model } from 'mongoose';
-import { User } from 'src/user/interface';
 import * as argon from "argon2";
-import { USER_MODEL } from 'src/user/schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable({})
 export class AuthService {
 
   constructor(
-    @Inject(USER_MODEL)
-    private userModel: Model<User>,
+    private prisma: PrismaService,
     private jwtService: JwtService,
     private config: ConfigService,
     private handleErrorsService: HandleErrorsService
@@ -21,7 +19,7 @@ export class AuthService {
 
   async register(dto: AuthDto) {
 
-    const { username, fullName, phone, email, password } = dto
+    const { fullName, email, password } = dto
 
     try {
 
@@ -45,7 +43,7 @@ export class AuthService {
 
   async login(dto: AuthDto) {
 
-    const { username, email, password: plainPassword } = dto
+    const { email, password: plainPassword } = dto
 
     try {
       const user = await this.fetchUser(username, email)

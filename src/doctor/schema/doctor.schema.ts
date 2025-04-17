@@ -64,7 +64,7 @@ export const DoctorSchema = new Schema({
     patients: [
         {
             type: Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'Patient'
         }
     ],
 

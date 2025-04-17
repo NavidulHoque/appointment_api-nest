@@ -22,6 +22,16 @@ export const PatientSchema = new Schema({
             type: Boolean,
             default: false
         },
+        visitDate: {
+            type: Date,
+            required: [true, 'Date is required'],
+            validate: {
+                validator: function (value: Date) {
+                    return value.getTime() > new Date().getTime();
+                },
+                message: 'Date must be in the future'
+            }
+        }
     }]
 
 }, { timestamps: true })

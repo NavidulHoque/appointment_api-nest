@@ -11,6 +11,7 @@ import { Type } from 'class-transformer';
 import { Role, Gender } from '@prisma/client';
 
 export class UserDto {
+
     @IsString()
     @MinLength(5, { message: 'Full name must be at least 5 characters long' })
     @Matches(/^[a-zA-Z. ]+$/, {

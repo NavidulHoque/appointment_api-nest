@@ -1,28 +1,25 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DoctorDto } from './dto';
-import { Doctor_MODEL } from './schema';
-import { Model, Types } from 'mongoose';
-import { Doctor } from './interface';
 import { ValidationIdService } from 'src/common/validationId.service';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class DoctorService {
 
     constructor(
-        @Inject(Doctor_MODEL)
-        private doctorModel: Model<Doctor>,
+        private prisma: PrismaService,
         private validationIdService: ValidationIdService,
         private handleErrorsService: HandleErrorsService
     ) { }
 
     async createDoctor(dto: DoctorDto) {
 
-        const { name, specialization, experience, contact, workingHours, isActive } = dto
+        const { userId, specialization, experience, contact, workingHours, isActive } = dto
 
         try {
 
-            const existingDoctor = await this.doctorModel.findOne({ 'contact.email': contact.email });
+            const existingDoctor = await this.prisma.doctor.findUnique({ 'contact.email': contact.email });
 
             if (existingDoctor) {
                 return this.handleErrorsService.throwBadRequestError("Email already exists");

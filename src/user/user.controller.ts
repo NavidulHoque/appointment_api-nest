@@ -17,7 +17,7 @@ export class UserController {
     }
 
     @Put("/")
-    updateUser(@Body() dto: UserDto, @User() user: UserDto) {
+    updateUser(@Body() dto: UserDto, @User() user: any) {
         this.userService.updateUser(dto, user)
     }
 }

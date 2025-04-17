@@ -13,16 +13,19 @@ export class UserService {
     ) { }
 
     getUser(user: UserDto) {
-        const { fullName, email, phone, gender, birthDate, address} = user
-        return { fullName, email, phone, gender, birthDate, address}
+        const { fullName, email, phone, gender, birthDate, address } = user
+        return { fullName, email, phone, gender, birthDate, address }
     }
 
-    updateUser(dto: AuthDto, user: any) {
-        const { sub: id } = user
-        const { username, fullName, phone, email } = dto
+    updateUser(dto: UserDto, user: any) {
+        const { id } = user
+        const { fullName, email, phone, gender, birthDate, address } = dto
 
         try {
-            const updatedUser = this.userModel.findByIdAndUpdate(id, { $set: { username, fullName, phone, email } }, { new: true })
+            const updatedUser = this.prisma.user.update({
+                where: { id },
+                data: { fullName, email, phone, gender, birthDate, address }
+            })
 
             return {
                 message: 'User updated successfully',

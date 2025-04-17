@@ -8,9 +8,17 @@ export class CheckRoleService {
         private handleErrorService: HandleErrorsService
     ) { }
 
-    checkIsUser(role: string) {
-        if (role !== "user") {
-            this.handleErrorService.throwUnauthorizedError("Unauthorized, only users can access this route")
+    checkIsPatient(role: string) {
+        if (role !== "patient") {
+            this.handleErrorService.throwUnauthorizedError("Unauthorized, only patients can access this route")
+        }
+
+        return
+    }
+
+    checkIsDoctor(role: string) {
+        if (role !== "doctor") {
+            this.handleErrorService.throwUnauthorizedError("Unauthorized, only doctor can access this route")
         }
 
         return

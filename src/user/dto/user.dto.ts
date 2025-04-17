@@ -24,28 +24,28 @@ export class UserDto {
 
     @IsOptional()
     @IsEnum(Role, { message: 'Role must be patient, doctor or admin' })
-    role?: Role;
+    role?: Role | null;
 
     @IsString()
     @IsOptional()
     @Matches(/^\d{11}$/, {
         message: 'Phone number must be exactly 11 digits',
     })
-    phone?: string;
+    phone?: string | null;
 
     @IsOptional()
     @IsEnum(Gender, { message: 'Gender must be male, female or other' })
-    gender?: Gender;
+    gender?: Gender | null;
 
     @IsOptional()
     @Type(() => Date)
     @IsDate({ message: 'Birth Date must be a valid date' })
-    birthDate?: Date;
+    birthDate?: Date | null;
 
     @IsString()
     @IsOptional()
     @MinLength(5, { message: 'Address must be at least 5 characters long' })
-    address?: string;
+    address?: string | null;
 
     @IsString()
     @MinLength(8, { message: 'Password must be at least 8 characters long' })

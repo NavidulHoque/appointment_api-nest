@@ -1,12 +1,9 @@
 import {
     IsEmail,
-    IsEnum,
     MinLength,
     Matches,
-    IsString,
-    IsOptional,
+    IsString
 } from 'class-validator';
-import { Role } from '@prisma/client';
 
 export class AuthDto {
     @IsString()
@@ -19,10 +16,6 @@ export class AuthDto {
     @IsString()
     @IsEmail({}, { message: 'Invalid email format' })
     email: string;
-
-    @IsOptional()
-    @IsEnum(Role, { message: 'Role must be patient, doctor or admin' })
-    role?: Role;
 
     @IsString()
     @MinLength(8, { message: 'Password must be at least 8 characters long' })

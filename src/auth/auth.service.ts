@@ -1,11 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthDto } from './dto';
-import { Model } from 'mongoose';
 import * as argon from "argon2";
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { FetchUserService } from 'src/common/fetchUser.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable({})
 export class AuthService {
@@ -14,24 +15,27 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private config: ConfigService,
-    private handleErrorsService: HandleErrorsService
+    private handleErrorsService: HandleErrorsService,
+    private fetchUserService: FetchUserService,
   ) { }
 
   async register(dto: AuthDto) {
 
-    const { fullName, email, password } = dto
+    const { email, password } = dto
 
     try {
 
-      const user = await this.fetchUser(username, email)
+      const user = await this.fetchUserService.fetchUser(email)
 
       if (user) {
         this.handleErrorsService.throwBadRequestError("User already exists")
       }
 
-      const newUser = new this.userModel({ username, fullName, phone, email, password })
+      const hashedPassword = await argon.hash(password);
 
-      await newUser.save()
+      dto.password = hashedPassword
+
+      await this.prisma.user.create({ data: dto })
 
       return { message: 'User created successfully' }
     }
@@ -46,13 +50,13 @@ export class AuthService {
     const { email, password: plainPassword } = dto
 
     try {
-      const user = await this.fetchUser(username, email)
+      const user = await this.fetchUserService.fetchUser(email)
 
       if (!user) {
         this.handleErrorsService.throwBadRequestError("User not found");
       }
 
-      const { _id, password: hashedPassword } = user;
+      const { password: hashedPassword } = user as any;
 
       const isMatched = await this.comparePassword(plainPassword, hashedPassword)
 
@@ -64,7 +68,7 @@ export class AuthService {
 
       return {
         message: 'Logged in successfully',
-        user: { id: _id, username },
+        user,
         token
       }
     }
@@ -72,15 +76,6 @@ export class AuthService {
     catch (error) {
       throw error; //throws server error
     }
-  }
-
-  private async fetchUser(username?: string, email?: string): Promise<any> {
-    
-    const user = await this.userModel.findOne({
-      $or: [{ username }, { email }]
-    });
-
-    return user
   }
 
   private async comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
@@ -91,14 +86,14 @@ export class AuthService {
 
   private async generateToken(user: any): Promise<string> {
 
-    const { _id, username, fullName, phone, role, email } = user
+    const { id } = user
 
-    const payload = { sub: _id, username, role, fullName, phone, email }
+    const payload = { sub: id }
     const secret = this.config.get('JWT_SECRET')
 
     const token = await this.jwtService.signAsync(payload, {
       secret,
-      expiresIn: '1d'
+      expiresIn: '7d'
     })
 
     return token

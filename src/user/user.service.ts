@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { AuthDto } from 'src/auth/dto';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
@@ -17,12 +16,12 @@ export class UserService {
         return { fullName, email, phone, gender, birthDate, address }
     }
 
-    updateUser(dto: UserDto, user: any) {
+    async updateUser(dto: UserDto, user: any) {
         const { id } = user
         const { fullName, email, phone, gender, birthDate, address } = dto
 
         try {
-            const updatedUser = this.prisma.user.update({
+            const updatedUser = await this.prisma.user.update({
                 where: { id },
                 data: { fullName, email, phone, gender, birthDate, address }
             })
@@ -30,6 +29,22 @@ export class UserService {
             return {
                 message: 'User updated successfully',
                 user: updatedUser
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
+    }
+
+    async deleteUser(user: any) {
+        const { id } = user
+
+        try {
+            await this.prisma.user.delete({ where: { id } })
+
+            return {
+                message: 'User deleted successfully'
             }
         }
 

@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Put, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard';
 import { User } from './decorator';
-import { AuthDto } from 'src/auth/dto';
 import { UserService } from './user.service';
 import { UserDto } from './dto';
 
@@ -11,13 +10,18 @@ export class UserController {
 
     constructor(private userService: UserService) { }
 
-    @Get("/")
+    @Get("")
     getUser(@User() user: UserDto) {
         return this.userService.getUser(user)
     }
 
-    @Put("/")
+    @Put("")
     updateUser(@Body() dto: UserDto, @User() user: any) {
         this.userService.updateUser(dto, user)
+    }
+
+    @Delete("")
+    deleteUser(@User() user: any) {
+        return this.userService.deleteUser(user)
     }
 }

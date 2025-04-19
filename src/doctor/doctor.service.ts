@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DoctorDto } from './dto';
-import { ValidationIdService } from 'src/common/validationId.service';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -9,23 +8,17 @@ export class DoctorService {
 
     constructor(
         private prisma: PrismaService,
-        private validationIdService: ValidationIdService,
         private handleErrorsService: HandleErrorsService
     ) { }
 
     async createDoctor(dto: DoctorDto) {
 
-        const { userId, specialization, experience, contact, workingHours, isActive } = dto
+        const { userId, specialization, education, experience, aboutMe, fees, startTime, endTime } = dto
 
         try {
-
-            const existingDoctor = await this.prisma.doctor.findUnique({ 'contact.email': contact.email });
-
-            if (existingDoctor) {
-                return this.handleErrorsService.throwBadRequestError("Email already exists");
-            }
-
-            const newDoctor = await this.doctorModel.create({ name, specialization, experience, contact, workingHours, isActive })
+            const newDoctor = await this.prisma.doctor.create({
+                data: { userId, specialization, education, experience, aboutMe, fees, startTime, endTime }
+            })
 
             return {
                 doctor: newDoctor,
@@ -41,8 +34,7 @@ export class DoctorService {
     async getAllDoctors() {
 
         try {
-
-            const doctors = await this.doctorModel.find({}).select('-createdAt -updatedAt -__v')
+            const doctors = await this.prisma.doctor.findMany()
 
             return {
                 doctors
@@ -58,9 +50,11 @@ export class DoctorService {
 
         try {
 
-            await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
+            const doctor = await this.prisma.doctor.findUnique({ where: { id } })
 
-            const doctor = await this.doctorModel.findById(id).select('-createdAt -updatedAt -__v')
+            if (!doctor) {
+                this.handleErrorsService.throwNotFoundError("Doctor not found")
+            }
 
             return {
                 doctor
@@ -74,18 +68,18 @@ export class DoctorService {
 
     async updateDoctor(dto: DoctorDto, id: string) {
 
-        const { name, specialization, experience, contact, workingHours, isActive } = dto
+        const { specialization, education, experience, aboutMe, fees, startTime, endTime } = dto
 
         try {
-            await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
 
-            const existingDoctor = await this.doctorModel.findOne({ 'contact.email': contact.email }) as ({ _id: Types.ObjectId })
+            const doctor = await this.prisma.doctor.update({
+                where: { id },
+                data: { specialization, education, experience, aboutMe, fees, startTime, endTime }
+            })
 
-            if (existingDoctor && existingDoctor._id.toString() !== id) {
-                return this.handleErrorsService.throwBadRequestError("Email already exists");
+            if (!doctor) {
+                this.handleErrorsService.throwNotFoundError("Doctor not found")
             }
-
-            const doctor = await this.doctorModel.findByIdAndUpdate(id, { name, specialization, experience, contact, workingHours, isActive }, { new: true, runValidators: true })
 
             return {
                 doctor,
@@ -101,9 +95,11 @@ export class DoctorService {
     async deleteDoctor(id: string) {
 
         try {
-            await this.validationIdService.validateId(id, this.doctorModel, "Doctor")
+            const doctor = await this.prisma.doctor.delete({ where: { id } })
 
-            await this.doctorModel.findByIdAndDelete(id)
+            if (!doctor) {
+                this.handleErrorsService.throwNotFoundError("Doctor not found")
+            }
 
             return {
                 message: "Doctor deleted successfully"

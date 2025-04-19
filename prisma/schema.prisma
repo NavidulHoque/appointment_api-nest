@@ -50,7 +50,7 @@ model Doctor {
   education      String
   experience     Int
   aboutMe        String
-  fees           Int?
+  fees           Int
   startTime      String
   endTime        String
   isActive       Boolean  @default(false)

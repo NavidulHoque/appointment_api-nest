@@ -3,6 +3,7 @@ import { AuthGuard } from 'src/auth/guard';
 import { User } from './decorator';
 import { UserService } from './user.service';
 import { UserDto } from './dto';
+import { AuthUser } from 'src/auth/interface';
 
 @UseGuards(AuthGuard)
 @Controller('users')
@@ -11,17 +12,17 @@ export class UserController {
     constructor(private userService: UserService) { }
 
     @Get("")
-    getUser(@User() user: UserDto) {
+    getUser(@User() user: AuthUser) {
         return this.userService.getUser(user)
     }
 
     @Put("")
-    updateUser(@Body() dto: UserDto, @User() user: any) {
+    updateUser(@Body() dto: UserDto, @User() user: AuthUser) {
         this.userService.updateUser(dto, user)
     }
 
     @Delete("")
-    deleteUser(@User() user: any) {
+    deleteUser(@User() user: AuthUser) {
         return this.userService.deleteUser(user)
     }
 }

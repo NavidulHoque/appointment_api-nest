@@ -33,10 +33,9 @@ export class DoctorDto {
     })
     aboutMe: string;
 
-    @IsOptional()
     @IsNumber()
     @Min(20, { message: 'Fees must be at least 20' })
-    fees?: number;
+    fees: number;
 
     @Matches(/^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$/, {
         message: 'Invalid time format, for example use 03:00 PM format',

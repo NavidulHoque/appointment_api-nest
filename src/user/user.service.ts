@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserDto } from './dto';
+import { AuthUser } from 'src/auth/interface';
 
 @Injectable()
 export class UserService {
@@ -11,12 +12,12 @@ export class UserService {
         private handleErrorsService: HandleErrorsService
     ) { }
 
-    getUser(user: UserDto) {
+    getUser(user: AuthUser) {
         const { fullName, email, phone, gender, birthDate, address } = user
         return { fullName, email, phone, gender, birthDate, address }
     }
 
-    async updateUser(dto: UserDto, user: any) {
+    async updateUser(dto: UserDto, user: AuthUser) {
         const { id } = user
         const { fullName, email, phone, gender, birthDate, address } = dto
 
@@ -37,7 +38,7 @@ export class UserService {
         }
     }
 
-    async deleteUser(user: any) {
+    async deleteUser(user: AuthUser) {
         const { id } = user
 
         try {

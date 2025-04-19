@@ -4,6 +4,7 @@ import { DoctorService } from './doctor.service';
 import { DoctorDto } from './dto';
 import { CheckRoleService } from 'src/common/checkRole.service';
 import { User } from 'src/user/decorator';
+import { AuthUser } from 'src/auth/interface';
 
 @UseGuards(AuthGuard)
 @Controller('doctors')
@@ -15,13 +16,14 @@ export class DoctorController {
     ) { }
 
     @Post("/")
-    createDoctor(@Body() dto: DoctorDto, @User() user: any) {
-        this.checkRoleService.checkIsAdmin(user.role)
+    createDoctor(@Body() dto: DoctorDto, @User() user: AuthUser) {
+        this.checkRoleService.checkIsDoctor(user.role)
         return this.doctorService.createDoctor(dto)
     }
 
     @Get("/")
-    getAllDoctors() {
+    getAllDoctors(@User() user: AuthUser) {
+        this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.getAllDoctors()
     }
 
@@ -31,13 +33,13 @@ export class DoctorController {
     }
 
     @Put("/:id")
-    updateDoctor(@Body() dto: DoctorDto, @Param('id') id: string, @User() user: any) {
-        this.checkRoleService.checkIsAdmin(user.role)
+    updateDoctor(@Body() dto: DoctorDto, @Param('id') id: string, @User() user: AuthUser) {
+        this.checkRoleService.checkIsDoctor(user.role)
         return this.doctorService.updateDoctor(dto, id)
     }
 
     @Delete("/:id")
-    deleteDoctor(@Param('id') id: string, @User() user: any) {
+    deleteDoctor(@Param('id') id: string, @User() user: AuthUser) {
         this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.deleteDoctor(id)
     }

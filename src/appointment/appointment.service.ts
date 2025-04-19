@@ -1,57 +1,26 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Appointment_MODEL } from './schema';
-import { Model } from 'mongoose';
-import { Appointment } from './interface';
 import { AppointmentDto } from './dto';
-import { Doctor_MODEL } from 'src/doctor/schema';
-import { Doctor } from 'src/doctor/interface';
-import { ValidationIdService } from 'src/common/validationId.service';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
-
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AppointmentService {
 
     constructor(
-        @Inject(Appointment_MODEL)
-        private appointmentModel: Model<Appointment>,
-        @Inject(Doctor_MODEL)
-        private doctorModel: Model<Doctor>,
-        private validationIdService: ValidationIdService,
+        private prisma: PrismaService,
         private handleErrorsService: HandleErrorsService
     ) { }
 
     async createAppointment(dto: AppointmentDto) {
 
-        const { patientName, contactInformation, date, time, doctorId } = dto
+        const { patientId, doctorId, date } = dto
 
         try {
 
-            this.validationIdService.validateId(doctorId, this.doctorModel, "Doctor")
-
-            const appointment = await this.appointmentModel.create({ patientName, contactInformation, date, time, doctorId })
-
-            const populatedAppointment = await appointment.populate("doctorId")
-
-            const { _id, doctorId: { name, specialization, experience, contact, workingHours, isActive } } = populatedAppointment
+            const appointment = await this.prisma.appointment.create({ data: { patientId, doctorId, date } })
 
             return {
-                appointment: {
-                    id: _id,
-                    patientName,
-                    contactInformation,
-                    date,
-                    time,
-                    doctor: {
-                        id: doctorId,
-                        name,
-                        specialization,
-                        experience,
-                        contact,
-                        workingHours,
-                        isActive
-                    }
-                },
+                appointment,
                 message: "Appointment created successfully"
             }
         }
@@ -65,29 +34,10 @@ export class AppointmentService {
     async getAllAppointments() {
 
         try {
-            const appointments = await this.appointmentModel.find()
-                .populate("doctorId")
-                .lean() // Convert the document to a plain JavaScript object which optimizes the performance
-
-            const formattedAppointments = appointments.map(({ _id, patientName, contactInformation, date, time, doctorId: { _id: id, name, specialization, experience, contact, workingHours, isActive } }) => ({
-                id: _id,
-                patientName,
-                contactInformation,
-                date,
-                time,
-                doctor: {
-                    id,
-                    name,
-                    specialization,
-                    experience,
-                    contact,
-                    workingHours,
-                    isActive
-                },
-            }));
+            const appointments = await this.prisma.appointment.findMany()
 
             return {
-                appointments: formattedAppointments
+                appointments
             }
         }
 
@@ -101,16 +51,14 @@ export class AppointmentService {
 
         try {
 
-            await this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
+            const appointment = await this.prisma.appointment.findUnique({ where: { id } })
 
-            const appointment = await this.appointmentModel.findById(id)
-                .populate("doctorId")
-                .lean()
-
-            const { patientName, contactInformation, date, time, doctorId: { _id, name, specialization, experience, contact, workingHours, isActive } } = appointment as any
+            if (!appointment) {
+                this.handleErrorsService.throwNotFoundError("Appointment not found")
+            }
 
             return {
-                appointment: { id, patientName, contactInformation, date, time, doctor: { id: _id, name, specialization, experience, contact, workingHours, isActive } }
+                appointment
             }
         }
 
@@ -122,42 +70,18 @@ export class AppointmentService {
 
     async updateAppointment(dto: AppointmentDto, id: string) {
 
-        const { patientName, contactInformation, date, time, doctorId } = dto
+        const { patientId, doctorId, date } = dto
 
         try {
 
-            await this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
+            const appointment = await this.prisma.appointment.update({ where: { id }, data: { patientId, doctorId, date } })
 
-            const appointment = await this.appointmentModel.findByIdAndUpdate(id, {
-                patientName,
-                contactInformation,
-                date,
-                time,
-                doctorId
-            },
-                { new: true, runValidators: true })
-
-            const populatedAppointment = appointment && await appointment.populate("doctorId")
-
-            const { doctorId: { name, specialization, experience, contact, workingHours, isActive } } = populatedAppointment as any
+            if (!appointment) {
+                this.handleErrorsService.throwNotFoundError("Appointment not found")
+            }
 
             return {
-                appointment: {
-                    id,
-                    patientName,
-                    contactInformation,
-                    date,
-                    time,
-                    doctor: {
-                        id: doctorId,
-                        name,
-                        specialization,
-                        experience,
-                        contact,
-                        workingHours,
-                        isActive
-                    }
-                },
+                appointment,
                 message: "Appointment updated successfully"
             }
         }
@@ -171,10 +95,11 @@ export class AppointmentService {
     async deleteAppointment(id: string) {
 
         try {
+            const appointment = await this.prisma.appointment.delete({ where: { id } })
 
-            await this.validationIdService.validateId(id, this.appointmentModel, "Appointment")
-
-            await this.appointmentModel.findByIdAndDelete(id)
+            if (!appointment) {
+                this.handleErrorsService.throwNotFoundError("Appointment not found")
+            }
 
             return {
                 message: "Appointment deleted successfully"

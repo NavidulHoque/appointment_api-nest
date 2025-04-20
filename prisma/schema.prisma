@@ -51,6 +51,7 @@ model Doctor {
   experience     Int
   aboutMe        String
   fees           Int
+  revenue        Int      @default(0)
   startTime      String
   endTime        String
   isActive       Boolean  @default(false)

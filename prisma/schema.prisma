@@ -52,8 +52,7 @@ model Doctor {
   aboutMe        String
   fees           Int
   revenue        Int      @default(0)
-  startTime      String
-  endTime        String
+  availableTimes String[]
   isActive       Boolean  @default(false)
   patients       Appointment[]
 

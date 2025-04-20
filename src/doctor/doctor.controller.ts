@@ -17,13 +17,12 @@ export class DoctorController {
 
     @Post("/")
     createDoctor(@Body() dto: DoctorDto, @User() user: AuthUser) {
-        this.checkRoleService.checkIsDoctor(user.role)
+        this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.createDoctor(dto)
     }
 
     @Get("/")
-    getAllDoctors(@User() user: AuthUser) {
-        this.checkRoleService.checkIsAdmin(user.role)
+    getAllDoctors() {
         return this.doctorService.getAllDoctors()
     }
 

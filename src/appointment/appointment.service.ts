@@ -47,6 +47,54 @@ export class AppointmentService {
 
     }
 
+    async getAllAppointmentsOfUser() {
+
+    }
+
+    async getAllAppointmentsOfDoctor(){
+
+    }
+
+    async getAllCancelledAppointments() {
+
+    }
+
+    async getAllPendingAppointments() {
+
+    }
+
+    async getAllCompletedAppointments() {
+
+    }
+
+    async getTotalAppointmentCount(){
+        
+    }
+
+    async getAppointmentsCountTodayOfDoctor() {
+
+    }
+
+    async getAllAppointmentsTodayOfDoctor() {
+
+    }
+
+    async getPatientsCountTodayOfDoctor() {
+
+    }
+
+    async getAllCancelledAppointmentsOfDoctor() {
+
+    }
+
+    async getAllPendingAppointmentsOfDoctor() {
+
+    }
+
+    async getAllCompletedAppointmentsOfDoctor() {
+
+    }
+
     async getAnAppointment(id: string) {
 
         try {
@@ -89,6 +137,10 @@ export class AppointmentService {
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
+
+    }
+
+    async updateAppointmentStatus() {
 
     }
 

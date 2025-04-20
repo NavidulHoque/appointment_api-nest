@@ -15,18 +15,24 @@ export class AppointmentController {
         private checkRoleService: CheckRoleService
     ) { }
 
-    @Post("/")
-    createAppointment(@Body() dto: AppointmentDto, @User() user: AuthUser) {
-        this.checkRoleService.checkIsPatient(user.role)
-        return this.appointmentService.createAppointment(dto)
-    }
-
+    //admin dashboard
     @Get("/")
     getAllAppointments(@User() user: AuthUser) {
         this.checkRoleService.checkIsAdmin(user.role)
         return this.appointmentService.getAllAppointments()
     }
 
+    //patient dashboard
+    @Post("/")
+    createAppointment(@Body() dto: AppointmentDto, @User() user: AuthUser) {
+        this.checkRoleService.checkIsPatient(user.role)
+        return this.appointmentService.createAppointment(dto)
+    }
+
+    //doctor dashboard
+
+
+    //both
     @Get("/:id")
     getAnAppointment(@Param('id') id: string) {
         return this.appointmentService.getAnAppointment(id)
@@ -34,7 +40,6 @@ export class AppointmentController {
 
     @Put("/:id")
     updateAppointment(@Body() dto: AppointmentDto, @Param('id') id: string, @User() user: AuthUser) {
-        this.checkRoleService.checkIsPatient(user.role)
         return this.appointmentService.updateAppointment(dto, id)
     }
 

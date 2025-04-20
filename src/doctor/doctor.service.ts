@@ -46,6 +46,11 @@ export class DoctorService {
         }
     }
 
+    async getAllDoctorsBySpecialization() {
+
+    }
+
+    //also send other related doctors in the response
     async getADoctor(id: string) {
 
         try {

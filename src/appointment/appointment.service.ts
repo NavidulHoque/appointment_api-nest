@@ -11,63 +11,179 @@ export class AppointmentService {
         private handleErrorsService: HandleErrorsService
     ) { }
 
-    async createAppointment(dto: AppointmentDto) {
-
-        const { patientId, doctorId, date } = dto
+    //admin dashboard
+    async getAllAppointments(page: number, limit: number) {
+        const skip = (page - 1) * limit;
 
         try {
+            const [appointments, total] = await this.prisma.$transaction([
+                this.prisma.appointment.findMany({
+                    skip,
+                    take: limit,
+                    orderBy: {
+                        date: 'desc',
+                    },
+                }),
+                this.prisma.appointment.count()
+            ]);
 
-            const appointment = await this.prisma.appointment.create({ data: { patientId, doctorId, date } })
+            const totalPages = Math.ceil(total / limit);
 
             return {
-                appointment,
-                message: "Appointment created successfully"
+                data: appointments,
+                pagination: {
+                    total,
+                    totalPages,
+                    currentPage: page,
+                    limit,
+                },
             }
         }
 
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
-
     }
 
-    async getAllAppointments() {
+    async getAllCancelledAppointments(page: number, limit: number) {
+        const skip = (page - 1) * limit;
 
         try {
-            const appointments = await this.prisma.appointment.findMany()
+            const [cancelledAppointments, total] = await this.prisma.$transaction([
+                this.prisma.appointment.findMany({
+                    where: { status: "CANCELLED" },
+                    skip,
+                    take: limit,
+                    orderBy: {
+                        date: 'desc',
+                    },
+                }),
+                this.prisma.appointment.count({
+                    where: { status: 'CANCELLED' }
+                }),
+            ]);
+
+            const totalPages = Math.ceil(total / limit);
 
             return {
-                appointments
+                data: cancelledAppointments,
+                pagination: {
+                    total,
+                    totalPages,
+                    currentPage: page,
+                    limit,
+                },
             }
         }
 
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
-
     }
 
-    async getAllAppointmentsOfPatient() {
+    async getAllPendingAppointments(page: number, limit: number) {
+        const skip = (page - 1) * limit;
 
+        try {
+            const [pendingAppointments, total] = await this.prisma.$transaction([
+                this.prisma.appointment.findMany({
+                    where: { status: "PENDING" },
+                    skip,
+                    take: limit,
+                    orderBy: {
+                        date: 'desc',
+                    },
+                }),
+                this.prisma.appointment.count({
+                    where: { status: 'PENDING' }
+                }),
+            ]);
+
+            const totalPages = Math.ceil(total / limit);
+
+            return {
+                data: pendingAppointments,
+                pagination: {
+                    total,
+                    totalPages,
+                    currentPage: page,
+                    limit,
+                },
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
     }
 
-    async getAllAppointmentsOfDoctor() {
+    async getAllCompletedAppointments(page: number, limit: number) {
+        const skip = (page - 1) * limit;
 
-    }
+        try {
+            const [completedAppointments, total] = await this.prisma.$transaction([
+                this.prisma.appointment.findMany({
+                    where: { status: "COMPLETED" },
+                    skip,
+                    take: limit,
+                    orderBy: {
+                        date: 'desc',
+                    },
+                }),
+                this.prisma.appointment.count({
+                    where: { status: 'COMPLETED' }
+                }),
+            ]);
 
-    async getAllCancelledAppointments() {
+            const totalPages = Math.ceil(total / limit);
 
-    }
+            return {
+                data: completedAppointments,
+                pagination: {
+                    total,
+                    totalPages,
+                    currentPage: page,
+                    limit,
+                },
+            }
+        }
 
-    async getAllPendingAppointments() {
-
-    }
-
-    async getAllCompletedAppointments() {
-
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
     }
 
     async getTotalAppointmentCount() {
+
+        try {
+            const totalAppointments = await this.prisma.appointment.count()
+
+            return {
+                data: totalAppointments
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
+
+    }
+
+    async getTotalAppointmentsGraph() {
+
+    }
+
+    //patient dashboard
+    async getAllAppointmentsOfPatient() {
+        const appointments = await this.prisma.appointment.findMany({})
+    }
+
+    async getAppointmentsGraphOfPatient() {
+
+    }
+
+    //doctor dashboard
+    async getAllAppointmentsOfDoctor() {
 
     }
 
@@ -91,6 +207,31 @@ export class AppointmentService {
 
     }
 
+    async getAppointmentsGraphOfDoctor() {
+
+    }
+
+    //both
+    async createAppointment(dto: AppointmentDto) {
+
+        const { patientId, doctorId, date } = dto
+
+        try {
+
+            const appointment = await this.prisma.appointment.create({ data: { patientId, doctorId, date } })
+
+            return {
+                appointment,
+                message: "Appointment created successfully"
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
+
+    }
+
     async getAnAppointment(id: string) {
 
         try {
@@ -109,18 +250,6 @@ export class AppointmentService {
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
-
-    }
-
-    async getAppointmentsGraphOfPatient() {
-
-    }
-
-    async getAppointmentsGraphOfDoctor() {
-
-    }
-
-    async getTotalAppointmentsGraph() {
 
     }
 

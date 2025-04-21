@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { AuthGuard } from 'src/auth/guard';
 import { AppointmentDto } from './dto';
@@ -17,27 +17,43 @@ export class AppointmentController {
 
     //admin dashboard
     @Get("/admin/get-all-appointments")
-    getAllAppointments(@User() user: AuthUser) {
+    getAllAppointments(
+        @User() user: AuthUser,
+        @Query('page') page: number,
+        @Query('limit') limit: number
+    ) {
         this.checkRoleService.checkIsAdmin(user.role)
-        return this.appointmentService.getAllAppointments()
+        return this.appointmentService.getAllAppointments(page, limit)
     }
 
     @Get("/admin/get-all-cancelled-appointments")
-    getAllCancelledAppointments(@User() user: AuthUser) {
+    getAllCancelledAppointments(
+        @User() user: AuthUser,
+        @Query('page') page: number,
+        @Query('limit') limit: number
+    ) {
         this.checkRoleService.checkIsAdmin(user.role)
-        return this.appointmentService.getAllCancelledAppointments()
+        return this.appointmentService.getAllCancelledAppointments(page, limit)
     }
 
     @Get("/admin/get-all-pending-appointments")
-    getAllPendingAppointments(@User() user: AuthUser) {
+    getAllPendingAppointments(
+        @User() user: AuthUser,
+        @Query('page') page: number,
+        @Query('limit') limit: number
+    ) {
         this.checkRoleService.checkIsAdmin(user.role)
-        return this.appointmentService.getAllPendingAppointments()
+        return this.appointmentService.getAllPendingAppointments(page, limit)
     }
 
     @Get("/admin/get-all-completed-appointments")
-    getAllCompletedAppointments(@User() user: AuthUser) {
+    getAllCompletedAppointments(
+        @User() user: AuthUser,
+        @Query('page') page: number,
+        @Query('limit') limit: number
+    ) {
         this.checkRoleService.checkIsAdmin(user.role)
-        return this.appointmentService.getAllCompletedAppointments()
+        return this.appointmentService.getAllCompletedAppointments(page, limit)
     }
 
     @Get("/admin/get-total-appointment-count")

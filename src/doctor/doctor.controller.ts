@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard';
 import { DoctorService } from './doctor.service';
 import { DoctorDto } from './dto';
@@ -15,29 +15,54 @@ export class DoctorController {
         private checkRoleService: CheckRoleService
     ) { }
 
-    @Post("/")
+    @Post("/create-doctor")
     createDoctor(@Body() dto: DoctorDto, @User() user: AuthUser) {
         this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.createDoctor(dto)
     }
 
-    @Get("/")
+    @Get("/get-all-doctors")
     getAllDoctors() {
         return this.doctorService.getAllDoctors()
     }
 
-    @Get("/:id")
+    @Get("/get-all-doctors-specialization")
+    getAllDoctorsBySpecialization() {
+        return this.doctorService.getAllDoctorsBySpecialization()
+    }
+
+    @Get("/get-a-doctor/:id")
     getADoctor(@Param('id') id: string) {
         return this.doctorService.getADoctor(id)
     }
 
-    @Put("/:id")
+    @Get("/get-all-patients/:doctorId")
+    allPatients() {
+        return this.doctorService.allPatients()
+    }
+
+    @Patch("/update-doctor/:id")
     updateDoctor(@Body() dto: DoctorDto, @Param('id') id: string, @User() user: AuthUser) {
         this.checkRoleService.checkIsDoctor(user.role)
         return this.doctorService.updateDoctor(dto, id)
     }
 
-    @Delete("/:id")
+    @Patch("/update-add-available-times/:id")
+    addAvailableTimes() {
+        this.doctorService.addAvailableTimes()
+    }
+
+    @Patch("/update-make-doctor-active/:id")
+    makeDoctorActive() {
+        this.doctorService.makeDoctorActive()
+    }
+
+    @Patch("/update-make-doctor-inactive/:id")
+    makeDoctorInActive() {
+        this.doctorService.makeDoctorInactive()
+    }
+
+    @Delete("/delete-doctor/:id")
     deleteDoctor(@Param('id') id: string, @User() user: AuthUser) {
         this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.deleteDoctor(id)

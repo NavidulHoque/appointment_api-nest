@@ -47,7 +47,7 @@ export class AppointmentService {
 
     }
 
-    async getAllAppointmentsOfUser() {
+    async getAllAppointmentsOfPatient() {
 
     }
 
@@ -71,15 +71,11 @@ export class AppointmentService {
 
     }
 
-    async getAppointmentsCountTodayOfDoctor() {
+    async getTotalAppointmentsCountOfDoctor() {
 
     }
 
     async getAllAppointmentsTodayOfDoctor() {
-
-    }
-
-    async getPatientsCountTodayOfDoctor() {
 
     }
 
@@ -116,11 +112,15 @@ export class AppointmentService {
 
     }
 
-    async getAppointmentsGraphOfUser(){
-        
+    async getAppointmentsGraphOfPatient() {
+
     }
 
-    async getTotalAppointmentsGraph(){
+    async getAppointmentsGraphOfDoctor() {
+
+    }
+
+    async getTotalAppointmentsGraph() {
 
     }
 

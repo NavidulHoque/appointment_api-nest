@@ -13,11 +13,11 @@ export class DoctorService {
 
     async createDoctor(dto: DoctorDto) {
 
-        const { userId, specialization, education, experience, aboutMe, fees, startTime, endTime } = dto
+        const { userId, specialization, education, experience, aboutMe, fees, availableTimes } = dto
 
         try {
             const newDoctor = await this.prisma.doctor.create({
-                data: { userId, specialization, education, experience, aboutMe, fees, startTime, endTime }
+                data: { userId, specialization, education, experience, aboutMe, fees, availableTimes }
             })
 
             return {
@@ -71,15 +71,19 @@ export class DoctorService {
         }
     }
 
+    async allPatients(){
+        
+    }
+
     async updateDoctor(dto: DoctorDto, id: string) {
 
-        const { specialization, education, experience, aboutMe, fees, startTime, endTime } = dto
+        const { specialization, education, experience, aboutMe, fees } = dto
 
         try {
 
             const doctor = await this.prisma.doctor.update({
                 where: { id },
-                data: { specialization, education, experience, aboutMe, fees, startTime, endTime }
+                data: { specialization, education, experience, aboutMe, fees }
             })
 
             if (!doctor) {
@@ -95,6 +99,18 @@ export class DoctorService {
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
+    }
+
+    async addAvailableTimes(){
+
+    }
+
+    async makeDoctorActive(){
+
+    }
+
+    async makeDoctorInactive(){
+
     }
 
     async deleteDoctor(id: string) {

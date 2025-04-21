@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AppointmentDto } from './dto';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -51,7 +51,7 @@ export class AppointmentService {
 
     }
 
-    async getAllAppointmentsOfDoctor(){
+    async getAllAppointmentsOfDoctor() {
 
     }
 
@@ -67,8 +67,8 @@ export class AppointmentService {
 
     }
 
-    async getTotalAppointmentCount(){
-        
+    async getTotalAppointmentCount() {
+
     }
 
     async getAppointmentsCountTodayOfDoctor() {
@@ -113,6 +113,14 @@ export class AppointmentService {
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
+
+    }
+
+    async getAppointmentsGraphOfUser(){
+        
+    }
+
+    async getTotalAppointmentsGraph(){
 
     }
 

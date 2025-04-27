@@ -29,36 +29,6 @@ export class AppointmentController {
         return this.appointmentService.getAllAppointments(page, limit, search, status, paymentMethod)
     }
 
-    @Get("/admin/get-all-cancelled-appointments")
-    getAllCancelledAppointments(
-        @User() user: AuthUser,
-        @Query('page') page: number,
-        @Query('limit') limit: number
-    ) {
-        this.checkRoleService.checkIsAdmin(user.role)
-        return this.appointmentService.getAllCancelledAppointments(page, limit)
-    }
-
-    @Get("/admin/get-all-pending-appointments")
-    getAllPendingAppointments(
-        @User() user: AuthUser,
-        @Query('page') page: number,
-        @Query('limit') limit: number
-    ) {
-        this.checkRoleService.checkIsAdmin(user.role)
-        return this.appointmentService.getAllPendingAppointments(page, limit)
-    }
-
-    @Get("/admin/get-all-completed-appointments")
-    getAllCompletedAppointments(
-        @User() user: AuthUser,
-        @Query('page') page: number,
-        @Query('limit') limit: number
-    ) {
-        this.checkRoleService.checkIsAdmin(user.role)
-        return this.appointmentService.getAllCompletedAppointments(page, limit)
-    }
-
     @Get("/admin/get-total-appointment-count")
     getTotalAppointmentCount(@User() user: AuthUser) {
         this.checkRoleService.checkIsAdmin(user.role)
@@ -72,12 +42,6 @@ export class AppointmentController {
     }
 
     //patient dashboard
-    @Get("/patient/get-all-appointments-patient")
-    getAllAppointmentsOfPatient(@User() user: AuthUser) {
-        this.checkRoleService.checkIsPatient(user.role)
-        return this.appointmentService.getAllAppointmentsOfPatient()
-    }
-
     @Get("/patient/get-appointments-graph-patient")
     getAppointmentsGraphOfPatient(@User() user: AuthUser) {
         this.checkRoleService.checkIsPatient(user.role)
@@ -85,12 +49,6 @@ export class AppointmentController {
     }
 
     //doctor dashboard
-    @Get("/doctor/get-all-appointments-doctor")
-    getAllAppointmentsOfDoctor(@User() user: AuthUser) {
-        this.checkRoleService.checkIsDoctor(user.role)
-        return this.appointmentService.getAllAppointmentsOfDoctor()
-    }
-
     @Get("/doctor/get-total-appointments-count-doctor")
     getTotalAppointmentsCountOfDoctor(@User() user: AuthUser) {
         this.checkRoleService.checkIsDoctor(user.role)

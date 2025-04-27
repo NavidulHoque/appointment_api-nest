@@ -20,151 +20,51 @@ export class AppointmentService {
         const skip = (page - 1) * limit;
 
         try {
-            const [appointments, total] = await this.prisma.$transaction([
-                this.prisma.appointment.findMany({
-                    orderBy: {
-                        date: 'asc',
-                    },
-                    include: {
-                        doctor: {
-                            include: {
-                                user: true,
-                            },
-                        },
-                        patient: {
-                            include: {
-                                user: true,
-                            },
+            const appointments = await this.prisma.appointment.findMany({
+                orderBy: {
+                    date: 'asc',
+                },
+                include: {
+                    doctor: {
+                        include: {
+                            user: true,
                         },
                     },
-                }),
-                this.prisma.appointment.count()
-            ]);
+                    patient: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            })
 
             let filteredAppointments = appointments.filter((appointment) => {
                 const doctorName = appointment.doctor.user.fullName.toLowerCase() || ""
                 const patientName = appointment.patient.user.fullName.toLowerCase() || ""
                 const appointmentStatus = appointment.status.toLowerCase() || ""
                 const appointmentPaymentMethod = appointment.paymentMethod?.toLowerCase() || ""
+
+                const matchesSearch = search ? search.includes(doctorName) || search.includes(patientName) || search.includes(appointmentStatus) || search.includes(appointmentPaymentMethod) : true;
+
+                const matchesStatus = status ? status === appointmentStatus : true
+
+                const matchesPaymentMethod = paymentMethod ? paymentMethod === appointmentPaymentMethod : true
+
+                return matchesSearch && matchesStatus && matchesPaymentMethod;
             })
 
-            const totalPages = Math.ceil(total / limit);
+            const totalItems = filteredAppointments.length;
+            const totalPages = Math.ceil(totalItems / limit);
+
+            const paginatedAppointments = filteredAppointments.slice(skip, skip + limit);
 
             return {
-                data: appointments,
+                data: paginatedAppointments,
                 pagination: {
-                    total,
+                    totalItems,
                     totalPages,
                     currentPage: page,
-                    limit,
-                },
-            }
-        }
-
-        catch (error) {
-            this.handleErrorsService.handleError(error)
-        }
-    }
-
-    async getAllCancelledAppointments(page: number, limit: number) {
-        const skip = (page - 1) * limit;
-
-        try {
-            const [cancelledAppointments, total] = await this.prisma.$transaction([
-                this.prisma.appointment.findMany({
-                    where: { status: "CANCELLED" },
-                    skip,
-                    take: limit,
-                    orderBy: {
-                        date: 'desc',
-                    },
-                }),
-                this.prisma.appointment.count({
-                    where: { status: 'CANCELLED' }
-                }),
-            ]);
-
-            const totalPages = Math.ceil(total / limit);
-
-            return {
-                data: cancelledAppointments,
-                pagination: {
-                    total,
-                    totalPages,
-                    currentPage: page,
-                    limit,
-                },
-            }
-        }
-
-        catch (error) {
-            this.handleErrorsService.handleError(error)
-        }
-    }
-
-    async getAllPendingAppointments(page: number, limit: number) {
-        const skip = (page - 1) * limit;
-
-        try {
-            const [pendingAppointments, total] = await this.prisma.$transaction([
-                this.prisma.appointment.findMany({
-                    where: { status: "PENDING" },
-                    skip,
-                    take: limit,
-                    orderBy: {
-                        date: 'desc',
-                    },
-                }),
-                this.prisma.appointment.count({
-                    where: { status: 'PENDING' }
-                }),
-            ]);
-
-            const totalPages = Math.ceil(total / limit);
-
-            return {
-                data: pendingAppointments,
-                pagination: {
-                    total,
-                    totalPages,
-                    currentPage: page,
-                    limit,
-                },
-            }
-        }
-
-        catch (error) {
-            this.handleErrorsService.handleError(error)
-        }
-    }
-
-    async getAllCompletedAppointments(page: number, limit: number) {
-        const skip = (page - 1) * limit;
-
-        try {
-            const [completedAppointments, total] = await this.prisma.$transaction([
-                this.prisma.appointment.findMany({
-                    where: { status: "COMPLETED" },
-                    skip,
-                    take: limit,
-                    orderBy: {
-                        date: 'desc',
-                    },
-                }),
-                this.prisma.appointment.count({
-                    where: { status: 'COMPLETED' }
-                }),
-            ]);
-
-            const totalPages = Math.ceil(total / limit);
-
-            return {
-                data: completedAppointments,
-                pagination: {
-                    total,
-                    totalPages,
-                    currentPage: page,
-                    limit,
+                    limit
                 },
             }
         }
@@ -195,19 +95,11 @@ export class AppointmentService {
     }
 
     //patient dashboard
-    async getAllAppointmentsOfPatient() {
-        const appointments = await this.prisma.appointment.findMany({})
-    }
-
     async getAppointmentsGraphOfPatient() {
 
     }
 
     //doctor dashboard
-    async getAllAppointmentsOfDoctor() {
-
-    }
-
     async getTotalAppointmentsCountOfDoctor() {
 
     }

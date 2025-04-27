@@ -20,10 +20,13 @@ export class AppointmentController {
     getAllAppointments(
         @User() user: AuthUser,
         @Query('page') page: number,
-        @Query('limit') limit: number
+        @Query('limit') limit: number,
+        @Query('search') search: string,
+        @Query('status') status: string,
+        @Query('paymentMethod') paymentMethod: string,
     ) {
         this.checkRoleService.checkIsAdmin(user.role)
-        return this.appointmentService.getAllAppointments(page, limit)
+        return this.appointmentService.getAllAppointments(page, limit, search, status, paymentMethod)
     }
 
     @Get("/admin/get-all-cancelled-appointments")

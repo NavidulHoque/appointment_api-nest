@@ -12,20 +12,41 @@ export class AppointmentService {
     ) { }
 
     //admin dashboard
-    async getAllAppointments(page: number, limit: number) {
+    async getAllAppointments(page: number, limit: number, search: string, status: string, paymentMethod: string) {
+
+        status = status.toLowerCase() || ""
+        search = search.toLowerCase() || ""
+        paymentMethod = paymentMethod.toLowerCase() || ""
         const skip = (page - 1) * limit;
 
         try {
             const [appointments, total] = await this.prisma.$transaction([
                 this.prisma.appointment.findMany({
-                    skip,
-                    take: limit,
                     orderBy: {
-                        date: 'desc',
+                        date: 'asc',
+                    },
+                    include: {
+                        doctor: {
+                            include: {
+                                user: true,
+                            },
+                        },
+                        patient: {
+                            include: {
+                                user: true,
+                            },
+                        },
                     },
                 }),
                 this.prisma.appointment.count()
             ]);
+
+            let filteredAppointments = appointments.filter((appointment) => {
+                const doctorName = appointment.doctor.user.fullName.toLowerCase() || ""
+                const patientName = appointment.patient.user.fullName.toLowerCase() || ""
+                const appointmentStatus = appointment.status.toLowerCase() || ""
+                const appointmentPaymentMethod = appointment.paymentMethod?.toLowerCase() || ""
+            })
 
             const totalPages = Math.ceil(total / limit);
 

@@ -14,17 +14,20 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  fullName  String
-  email     String   @unique
-  role      Role     @default(PATIENT)
-  phone     String?  @db.VarChar(11)
-  gender    Gender?
-  birthDate DateTime?
-  address   String?
-  password  String
-  doctor    Doctor?
-  patient   Patient?
+  id            String   @id @default(uuid())
+  fullName      String
+  email         String   @unique
+  role          Role     @default(PATIENT)
+  phone         String?  @db.VarChar(11)
+  gender        Gender?
+  birthDate     DateTime?
+  address       String?
+  password      String
+  doctor        Doctor?
+  patient       Patient?
+  otp           String?  @unique
+  otpExpires    String?
+  refreshToken  String?  @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -8,9 +8,11 @@ import { AppController } from './app.controller';
 import { CommonModule } from './common/common.module';
 import { PatientModule } from './patient/patient.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ReviewModule } from './review/review.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), AuthModule, UserModule, AppointmentModule, DoctorModule, CommonModule, PatientModule, PrismaModule],
+  imports: [ConfigModule.forRoot(), AuthModule, UserModule, AppointmentModule, DoctorModule, CommonModule, PatientModule, PrismaModule, ReviewModule, MessageModule],
   controllers: [AppController]
 })
 export class AppModule { }

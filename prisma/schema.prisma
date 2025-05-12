@@ -97,4 +97,20 @@ enum Method{
   ONLINE
 }
 
+model Review{
+  id              String     @id @default(uuid())
+  patient         Patient    @relation(fields: [patientId], references: [id])
+  patientId       String
+  doctor          Doctor     @relation(fields: [doctorId], references: [id])
+  doctorId        String
+  comment         String?
+  rating          Int        @range([0,5])
+  createdAt       DateTime   @default(now())
+}
+
+model Message{
+  id              String     @id @default(uuid())
+}
+
+
 

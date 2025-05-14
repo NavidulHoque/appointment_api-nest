@@ -40,7 +40,7 @@ export class UserDto {
 
     @IsOptional()
     @IsEnum(Role, { message: 'Role must be patient, doctor or admin' })
-    role?: Role | null;
+    role: Role;
 
     @IsString()
     @IsOptional()

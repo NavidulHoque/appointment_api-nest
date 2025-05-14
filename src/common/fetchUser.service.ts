@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
-import { UserDto } from "src/user/dto";
+import { Role, UserDto } from "src/user/dto";
 
 
 @Injectable()
@@ -11,6 +11,16 @@ export class FetchUserService {
 
         const user = await this.prisma.user.findUnique({ where: { email } });
 
-        return user
+        if (!user) return null;
+
+        const userDto: UserDto = {
+            id: user.id,
+            email: user.email,
+            fullName: user.fullName,
+            role: user.role as Role,
+            password: user.password,
+        };
+
+        return userDto;
     }
 }

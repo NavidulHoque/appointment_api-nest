@@ -1,14 +1,11 @@
-import { Role } from '@prisma/client'
 import {
     IsEmail,
     MinLength,
     Matches,
-    IsString,
-    IsOptional,
-    IsEnum
+    IsString
 } from 'class-validator';
 
-export class AuthDto {
+export class RegistrationDto {
     @IsString()
     @MinLength(5, { message: 'Full name must be at least 5 characters long' })
     @Matches(/^[a-zA-Z. ]+$/, {

@@ -64,7 +64,9 @@ export class AuthService {
         this.handleErrorsService.throwBadRequestError("Password invalid")
       }
 
-      const token = await this.generateToken(user)
+      const payload = {id: user?.id, role: user?.role}
+
+      const token = await this.generateAccessToken(payload)
 
       return {
         message: 'Logged in successfully',
@@ -84,18 +86,13 @@ export class AuthService {
     return isMatched
   }
 
-  private async generateToken(user: any): Promise<string> {
+  private async generateAccessToken(payload: {id: string | undefined, role: string | null | undefined}): Promise<string> {
 
-    const { id } = user
+    const accessTokenSecrete = this.config.get<string>('ACCESS_TOKEN_SECRET')
+    const accessTokenExpires = this.config.get<string>('ACCESS_TOKEN_EXPIRES')
 
-    const payload = { sub: id }
-    const secret = this.config.get('JWT_SECRET')
+    const accessToken = this.jwtService.sign(payload, { secret: accessTokenSecrete, expiresIn: accessTokenExpires });
 
-    const token = await this.jwtService.signAsync(payload, {
-      secret,
-      expiresIn: '7d'
-    })
-
-    return token
+    return accessToken
   }
 }

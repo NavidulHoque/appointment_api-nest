@@ -8,9 +8,24 @@ import {
     IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Role, Gender } from '@prisma/client';
+
+export enum Role {
+    Patient = 'PATIENT',
+    Doctor = 'DOCTOR',
+    Admin = 'ADMIN',
+}
+
+export enum Gender {
+    Male = 'MALE',
+    Female = 'FEMALE',
+    Other = 'OTHER',
+}
 
 export class UserDto {
+
+    @IsString()
+    @IsOptional()
+    id: string;
 
     @IsString()
     @MinLength(5, { message: 'Full name must be at least 5 characters long' })

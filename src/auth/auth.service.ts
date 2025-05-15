@@ -5,8 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { FetchUserService } from 'src/common/fetchUser.service';
-import { UserDto } from 'src/user/dto';
 import { LoginDto, RegistrationDto } from './dto';
+import { AuthUser } from './interface';
 
 @Injectable({})
 export class AuthService {
@@ -52,19 +52,15 @@ export class AuthService {
     try {
       const user = await this.fetchUserService.fetchUser(email)
 
-      if (!user) {
-        this.handleErrorsService.throwBadRequestError("User not found");
-      }
+      if (!user) this.handleErrorsService.throwBadRequestError("User not found");
 
-      const { password: hashedPassword } = user as UserDto;
+      const { password: hashedPassword } = user as AuthUser;
 
       const isMatched = await this.comparePassword(plainPassword, hashedPassword)
 
-      if (!isMatched) {
-        this.handleErrorsService.throwBadRequestError("Password invalid")
-      }
+      if (!isMatched) this.handleErrorsService.throwBadRequestError("Password invalid")
 
-      const payload = { id: user?.id, role: user?.role }
+      const payload = { id: user?.id }
 
       const accessToken = await this.generateAccessToken(payload)
       const refreshToken = await this.generateRefreshToken(payload)
@@ -99,7 +95,7 @@ export class AuthService {
     return isMatched
   }
 
-  private async generateAccessToken(payload: { id: string | undefined, role: string | undefined }): Promise<string> {
+  private async generateAccessToken(payload: { id: string | undefined }): Promise<string> {
 
     const accessTokenSecrete = this.config.get<string>('ACCESS_TOKEN_SECRET')
     const accessTokenExpires = this.config.get<string>('ACCESS_TOKEN_EXPIRES')
@@ -109,7 +105,7 @@ export class AuthService {
     return accessToken
   }
 
-  private async generateRefreshToken(payload: { id: string | undefined, role: string | undefined }): Promise<string> {
+  private async generateRefreshToken(payload: { id: string | undefined }): Promise<string> {
 
     const refreshTokenSecrete = this.config.get<string>('REFRESH_TOKEN_SECRET')
     const refreshTokenExpires = this.config.get<string>('REFRESH_TOKEN_EXPIRES')

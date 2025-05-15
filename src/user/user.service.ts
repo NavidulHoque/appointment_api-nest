@@ -12,7 +12,7 @@ export class UserService {
         private handleErrorsService: HandleErrorsService
     ) { }
 
-    getUser(user: AuthUser) {
+    getUser(user: UserDto) {
         const { fullName, email, phone, gender, birthDate, address } = user
         return { fullName, email, phone, gender, birthDate, address }
     }

@@ -12,7 +12,7 @@ export class UserController {
     constructor(private userService: UserService) { }
 
     @Get("")
-    getUser(@User() user: AuthUser) {
+    getUser(@User() user: any) {
         return this.userService.getUser(user)
     }
 

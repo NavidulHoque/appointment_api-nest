@@ -23,11 +23,9 @@ export class AuthGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
 
-        if (!token) {
-            this.handleErrorService.throwUnauthorizedError("No token provided, please login")
-        }
+        if (!token) this.handleErrorService.throwUnauthorizedError("No token provided, please login")
 
-        const secret = this.config.get('JWT_SECRET')
+        const secret = this.config.get('ACCESS_TOKEN_SECRET')
 
         try {
             const payload = await this.jwtService.verifyAsync(token as string, { secret })
@@ -39,17 +37,11 @@ export class AuthGuard implements CanActivate {
 
         catch (error) {
 
-            if (error.name === "TokenExpiredError") {
-                this.handleErrorService.throwUnauthorizedError("Token expired, please login again")
-            }
+            if (error.name === "TokenExpiredError") this.handleErrorService.throwUnauthorizedError("Token expired, please login again")
 
-            else if (error.name === "JsonWebTokenError") {
-                this.handleErrorService.throwUnauthorizedError("Invalid token, please login again");
-            }
+            else if (error.name === "JsonWebTokenError") this.handleErrorService.throwUnauthorizedError("Invalid token, please login again");
 
-            else if (error.name === "NotBeforeError") {
-                this.handleErrorService.throwUnauthorizedError("Token not active yet, please login again");
-            }
+            else if (error.name === "NotBeforeError") this.handleErrorService.throwUnauthorizedError("Token not active yet, please login again");
 
             throw error
         }

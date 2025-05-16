@@ -118,19 +118,15 @@ export class DoctorService {
         }
     }
 
-    async allPatients() {
-
-    }
-
     async updateDoctor(dto: DoctorDto, id: string) {
 
-        const { specialization, education, experience, aboutMe, fees } = dto
+        const { specialization, education, experience, aboutMe, fees, availableTimes } = dto
 
         try {
 
             const doctor = await this.prisma.doctor.update({
                 where: { id },
-                data: { specialization, education, experience, aboutMe, fees }
+                data: { specialization, education, experience, aboutMe, fees, availableTimes }
             })
 
             if (!doctor) {
@@ -148,16 +144,106 @@ export class DoctorService {
         }
     }
 
-    async addAvailableTimes() {
+    async addAvailableTime(id: string, availableTime: string) {
 
+        try {
+
+            const doctor = await this.prisma.doctor.update({
+                where: { id },
+                data: {
+                    availableTimes: {
+                        push: availableTime
+                    }
+                }
+            })
+
+            if (!doctor) {
+                this.handleErrorsService.throwNotFoundError("Doctor not found")
+            }
+
+            return {
+                data: doctor,
+                message: "Available time added successfully"
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
     }
 
-    async makeDoctorActive() {
+    async removeAvailableTime(id: string, availableTime: string) {
 
+        try {
+            const doctorRecord = await this.prisma.doctor.findUnique({ where: { id } });
+
+            if (!doctorRecord) this.handleErrorsService.throwNotFoundError("Doctor not found")
+
+            const updatedAvailableTimes = doctorRecord?.availableTimes.filter((time: string) => time !== availableTime);
+
+            const doctor = await this.prisma.doctor.update({
+                where: { id },
+                data: {
+                    availableTimes: updatedAvailableTimes
+                }
+            });
+
+            return {
+                data: doctor,
+                message: "Available time removed successfully"
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
     }
 
-    async makeDoctorInactive() {
 
+    async makeDoctorActive(id: string) {
+
+        try {
+
+            const doctor = await this.prisma.doctor.update({
+                where: { id },
+                data: {
+                    isActive: true
+                }
+            })
+
+            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
+
+            return {
+                message: "Doctor activated successfully"
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
+    }
+
+    async makeDoctorInactive(id: string) {
+
+        try {
+
+            const doctor = await this.prisma.doctor.update({
+                where: { id },
+                data: {
+                    isActive: false
+                }
+            })
+
+            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
+
+            return {
+                message: "Doctor deactivated successfully"
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
     }
 
     async deleteDoctor(id: string) {
@@ -165,9 +251,7 @@ export class DoctorService {
         try {
             const doctor = await this.prisma.doctor.delete({ where: { id } })
 
-            if (!doctor) {
-                this.handleErrorsService.throwNotFoundError("Doctor not found")
-            }
+            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
 
             return {
                 message: "Doctor deleted successfully"

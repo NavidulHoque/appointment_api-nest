@@ -96,6 +96,11 @@ export class AppointmentController {
         return this.appointmentService.getAnAppointment(id)
     }
 
+    @Get("/get-all-patients/:doctorId")
+    getAllPatients() {
+        return this.appointmentService.getAllPatients()
+    }
+
     @Put("/update-appointment/:id")
     updateAppointment(@Body() dto: AppointmentDto, @Param('id') id: string) {
         return this.appointmentService.updateAppointment(dto, id)

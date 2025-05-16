@@ -17,7 +17,10 @@ export class DoctorController {
     ) { }
 
     @Post("/create-doctor")
-    createDoctor(@Body() dto: DoctorDto, @User() user: UserDto) {
+    createDoctor(
+        @Body() dto: DoctorDto, 
+        @User() user: UserDto
+    ) {
         this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.createDoctor(dto)
     }
@@ -50,35 +53,61 @@ export class DoctorController {
         return this.doctorService.getADoctor(id)
     }
 
-    @Get("/get-all-patients/:doctorId")
-    allPatients() {
-        return this.doctorService.allPatients()
-    }
-
     @Patch("/update-doctor/:id")
-    updateDoctor(@Body() dto: DoctorDto, @Param('id') id: string, @User() user: AuthUser) {
-        this.checkRoleService.checkIsDoctor(user.role)
-        return this.doctorService.updateDoctor(dto, id)
+    updateDoctor(
+        @Body() body: any, 
+        @Param('id') id: string, 
+        @User() user: UserDto
+    ) {
+        this.checkRoleService.checkIsAdminOrDoctor(user.role)
+        return this.doctorService.updateDoctor(body, id)
     }
 
     @Patch("/update-add-available-times/:id")
-    addAvailableTimes() {
-        this.doctorService.addAvailableTimes()
+    addAvailableTime(
+        @Body('availableTime') availableTime: string, 
+        @Param('id') id: string, 
+        @User() user: UserDto
+    ) {
+        this.checkRoleService.checkIsAdminOrDoctor(user.role)
+        return this.doctorService.addAvailableTime(id, availableTime)
     }
 
+    @Patch("/update-remove-available-times/:id")
+    removeAvailableTime(
+        @Body('availableTime') availableTime: string, 
+        @Param('id') id: string, 
+        @User() user: UserDto
+    ) {
+        this.checkRoleService.checkIsAdminOrDoctor(user.role)
+        return this.doctorService.removeAvailableTime(id, availableTime)
+    }
+
+
     @Patch("/update-make-doctor-active/:id")
-    makeDoctorActive() {
-        this.doctorService.makeDoctorActive()
+    makeDoctorActive(
+        @Param('id') id: string, 
+        @User() user: UserDto
+    ) {
+        this.checkRoleService.checkIsAdminOrDoctor(user.role)
+        return this.doctorService.makeDoctorActive(id)
     }
 
     @Patch("/update-make-doctor-inactive/:id")
-    makeDoctorInActive() {
-        this.doctorService.makeDoctorInactive()
+    makeDoctorInActive(
+        @Param('id') id: string, 
+        @User() user: UserDto
+    ) {
+        this.checkRoleService.checkIsAdminOrDoctor(user.role)
+        return this.doctorService.makeDoctorInactive(id)
     }
 
     @Delete("/delete-doctor/:id")
-    deleteDoctor(@Param('id') id: string, @User() user: AuthUser) {
-        this.checkRoleService.checkIsAdmin(user.role)
+    deleteDoctor(
+        @Param('id') id: string, 
+        @User() user: AuthUser
+    ) {
+        this.checkRoleService.checkIsAdminOrDoctor(user.role)
         return this.doctorService.deleteDoctor(id)
     }
 }

@@ -41,10 +41,51 @@ export class DoctorService {
         }
     }
 
-    async getAllDoctors() {
+    async getAllDoctors(page: number, limit: number, specialization: string, education: string, experience: number[], weeks: string[], fees: number[], isActive: boolean, search: string) {
+
+        const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {}
+
+        if (education) query['education'] = { contains: education, mode: 'insensitive' }  //will filter case-insensitive
+
+        if (experience?.length === 2) {
+            const [min, max] = experience;
+            query['experience'] = { gte: min, lte: max };
+        }
+
+        if (weeks?.length) {
+            query['OR'] = weeks.map(week => ({
+                availableTimes: {
+                    some: { contains: week }
+                }
+            }));
+        }
+
+        if (fees?.length === 2) {
+            const [min, max] = fees;
+            query['fees'] = { gte: min, lte: max };
+        }
+
+        if (isActive) query['isActive'] = isActive
+
+        if (search) {
+            query.OR = [
+                ...(query.OR || []), // preserve existing OR filters (like weeks)
+                { specialization: { contains: search, mode: 'insensitive' } },
+                { education: { contains: search, mode: 'insensitive' } },
+                { aboutMe: { contains: search, mode: 'insensitive' } },
+                {
+                    user: {
+                        OR: [
+                            { fullName: { contains: search, mode: 'insensitive' } },
+                            { email: { contains: search, mode: 'insensitive' } }
+                        ]
+                    }
+                }
+            ];
+        }
 
         try {
-            const doctors = await this.prisma.doctor.findMany()
+            const doctors = await this.prisma.doctor.findMany({ where: query })
 
             return {
                 doctors
@@ -54,10 +95,6 @@ export class DoctorService {
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
-    }
-
-    async getAllDoctorsBySpecialization() {
-
     }
 
     //also send other related doctors in the response

@@ -31,4 +31,37 @@ export class CheckRoleService {
 
         return
     }
+
+    checkIsAdminOrPatient(role: string) {
+        if (role !== "ADMIN" && role !== "PATIENT") {
+            this.handleErrorService.throwUnauthorizedError("Unauthorized, only admins or patients can access this route")
+        }
+
+        return
+    }
+
+    checkIsAdminOrDoctor(role: string) {
+        if (role !== "ADMIN" && role !== "DOCTOR") {
+            this.handleErrorService.throwUnauthorizedError("Unauthorized, only admins or doctors can access this route")
+        }
+
+        return
+    }
+
+    checkIsPatientOrDoctor(role: string) {
+        if (role !== "PATIENT" && role !== "DOCTOR") {
+            this.handleErrorService.throwUnauthorizedError("Unauthorized, only patients or doctors can access this route")
+        }
+
+        return
+    }
+
+    checkIsAdminOrPatientOrDoctor(role: string) {
+        if (role !== "ADMIN" && role !== "PATIENT" && role !== "DOCTOR") {
+            this.handleErrorService.throwUnauthorizedError("Unauthorized, only admins, patients, or doctors can access this route")
+        }
+
+        return
+    }
+
 }

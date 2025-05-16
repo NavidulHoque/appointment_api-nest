@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseArrayPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard';
 import { DoctorService } from './doctor.service';
 import { DoctorDto } from './dto';
@@ -18,19 +18,31 @@ export class DoctorController {
 
     @Post("/create-doctor")
     createDoctor(@Body() dto: DoctorDto, @User() user: UserDto) {
-        console.log(user?.role);
         this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.createDoctor(dto)
     }
 
     @Get("/get-all-doctors")
-    getAllDoctors() {
-        return this.doctorService.getAllDoctors()
-    }
+    getAllDoctors(
+        @User() user: UserDto,
+        @Query('page') page: number,
+        @Query('limit') limit: number,
+        @Query('specialization') specialization: string,
+        @Query('education') education: string,
+        @Query('experience', new ParseArrayPipe({ items: Number, separator: ',', optional: true }))
+        experience: number[],
 
-    @Get("/get-all-doctors-specialization")
-    getAllDoctorsBySpecialization() {
-        return this.doctorService.getAllDoctorsBySpecialization()
+        @Query('fees', new ParseArrayPipe({ items: Number, separator: ',', optional: true }))
+        fees: number[],
+
+        @Query('weeks', new ParseArrayPipe({ items: String, separator: ',', optional: true }))
+        weeks: string[],
+
+        @Query('isActive') isActive: boolean,
+        @Query('search') search: string,
+    ) {
+        this.checkRoleService.checkIsAdminOrPatient(user.role)
+        return this.doctorService.getAllDoctors(page, limit, specialization, education, experience, weeks,fees, isActive, search)
     }
 
     @Get("/get-a-doctor/:id")

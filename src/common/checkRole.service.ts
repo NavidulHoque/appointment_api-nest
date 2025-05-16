@@ -9,7 +9,7 @@ export class CheckRoleService {
     ) { }
 
     checkIsPatient(role: string) {
-        if (role !== "patient") {
+        if (role !== "PATIENT") {
             this.handleErrorService.throwUnauthorizedError("Unauthorized, only patients can access this route")
         }
 
@@ -17,7 +17,7 @@ export class CheckRoleService {
     }
 
     checkIsDoctor(role: string) {
-        if (role !== "doctor") {
+        if (role !== "DOCTOR") {
             this.handleErrorService.throwUnauthorizedError("Unauthorized, only doctor can access this route")
         }
 
@@ -25,7 +25,7 @@ export class CheckRoleService {
     }
 
     checkIsAdmin(role: string) {
-        if (role !== "admin") {
+        if (role !== "ADMIN") {
             this.handleErrorService.throwUnauthorizedError("Unauthorized, only admins can access this route")
         }
 

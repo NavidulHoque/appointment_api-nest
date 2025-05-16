@@ -38,12 +38,12 @@ export class UserDto {
     @IsEmail({}, { message: 'Invalid email format' })
     email: string;
 
-    @IsOptional()
+    @IsString()
     @IsEnum(Role, { message: 'Role must be patient, doctor or admin' })
     role: Role;
 
-    @IsString()
     @IsOptional()
+    @IsString()
     @Matches(/^\d{11}$/, {
         message: 'Phone number must be exactly 11 digits',
     })
@@ -58,8 +58,8 @@ export class UserDto {
     @IsDate({ message: 'Birth Date must be a valid date' })
     birthDate?: Date | null;
 
-    @IsString()
     @IsOptional()
+    @IsString()
     @MinLength(5, { message: 'Address must be at least 5 characters long' })
     address?: string | null;
 
@@ -70,4 +70,14 @@ export class UserDto {
             'Password must contain at least one number and one special character',
     })
     password: string;
+
+    @IsOptional()
+    @Type(() => Date)
+    @IsDate({ message: 'Created At must be a valid date' })
+    createdAt?: Date | null;
+
+    @IsOptional()
+    @Type(() => Date)
+    @IsDate({ message: 'Updated At must be a valid date' })
+    updatedAt?: Date | null;
 }

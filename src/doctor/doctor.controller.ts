@@ -5,6 +5,7 @@ import { DoctorDto } from './dto';
 import { CheckRoleService } from 'src/common/checkRole.service';
 import { User } from 'src/user/decorator';
 import { AuthUser } from 'src/auth/interface';
+import { UserDto } from 'src/user/dto';
 
 @UseGuards(AuthGuard)
 @Controller('doctors')
@@ -16,7 +17,8 @@ export class DoctorController {
     ) { }
 
     @Post("/create-doctor")
-    createDoctor(@Body() dto: DoctorDto, @User() user: AuthUser) {
+    createDoctor(@Body() dto: DoctorDto, @User() user: UserDto) {
+        console.log(user?.role);
         this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.createDoctor(dto)
     }

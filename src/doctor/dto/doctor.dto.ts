@@ -6,6 +6,8 @@ import {
     Min,
     MinLength,
     Matches,
+    IsArray,
+    ArrayNotEmpty,
 } from 'class-validator';
 
 export class DoctorDto {
@@ -16,10 +18,6 @@ export class DoctorDto {
     specialization: string;
 
     @MinLength(5, { message: 'Education must be at least 5 characters long' })
-    @Matches(/^[a-zA-Z., ]+$/, {
-        message:
-            'Education can only contain letters, spaces, dots, and commas',
-    })
     education: string;
 
     @IsNumber()
@@ -37,6 +35,9 @@ export class DoctorDto {
     @Min(20, { message: 'Fees must be at least 20' })
     fees: number;
 
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsString({ each: true })
     availableTimes: string[];
 
     @IsOptional()

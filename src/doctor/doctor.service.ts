@@ -16,9 +16,19 @@ export class DoctorService {
         const { userId, specialization, education, experience, aboutMe, fees, availableTimes } = dto
 
         try {
-            const newDoctor = await this.prisma.doctor.create({
-                data: { userId, specialization, education, experience, aboutMe, fees, availableTimes }
-            })
+            const existingDoctor = await this.prisma.doctor.findFirst({ where: { userId } })
+
+            if (existingDoctor) this.handleErrorsService.throwBadRequestError("Doctor already exists")
+
+            const [newDoctor] = await this.prisma.$transaction([
+                this.prisma.doctor.create({
+                    data: { userId, specialization, education, experience, aboutMe, fees, availableTimes },
+                }),
+                this.prisma.user.update({
+                    where: { id: userId },
+                    data: { role: 'DOCTOR' },
+                }),
+            ]);
 
             return {
                 doctor: newDoctor,
@@ -71,8 +81,8 @@ export class DoctorService {
         }
     }
 
-    async allPatients(){
-        
+    async allPatients() {
+
     }
 
     async updateDoctor(dto: DoctorDto, id: string) {
@@ -101,15 +111,15 @@ export class DoctorService {
         }
     }
 
-    async addAvailableTimes(){
+    async addAvailableTimes() {
 
     }
 
-    async makeDoctorActive(){
+    async makeDoctorActive() {
 
     }
 
-    async makeDoctorInactive(){
+    async makeDoctorInactive() {
 
     }
 

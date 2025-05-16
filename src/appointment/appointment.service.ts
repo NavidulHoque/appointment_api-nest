@@ -145,6 +145,10 @@ export class AppointmentService {
 
     }
 
+    getAllPatients(){
+        
+    }
+
     async getAnAppointment(id: string) {
 
         try {

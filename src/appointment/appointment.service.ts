@@ -108,18 +108,6 @@ export class AppointmentService {
 
     }
 
-    async getAllCancelledAppointmentsOfDoctor() {
-
-    }
-
-    async getAllPendingAppointmentsOfDoctor() {
-
-    }
-
-    async getAllCompletedAppointmentsOfDoctor() {
-
-    }
-
     async getAppointmentsGraphOfDoctor() {
 
     }

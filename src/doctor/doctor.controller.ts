@@ -49,8 +49,14 @@ export class DoctorController {
     }
 
     @Get("/get-a-doctor/:id")
-    getADoctor(@Param('id') id: string) {
-        return this.doctorService.getADoctor(id)
+    getADoctor(
+        @Param('id') id: string,
+        @User() user: UserDto,
+        @Query('page') page: number,
+        @Query('limit') limit: number,
+    ) {
+        this.checkRoleService.checkIsAdminOrPatient(user.role)
+        return this.doctorService.getADoctor(id, page, limit)
     }
 
     @Patch("/update-doctor/:id")

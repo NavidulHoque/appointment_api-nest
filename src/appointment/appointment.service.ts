@@ -14,64 +14,64 @@ export class AppointmentService {
     //admin dashboard
     async getAllAppointments(page: number, limit: number, search: string, status: string, paymentMethod: string) {
 
-        status = status.toLowerCase() || ""
-        search = search.toLowerCase() || ""
-        paymentMethod = paymentMethod.toLowerCase() || ""
-        const skip = (page - 1) * limit;
+        // status = status.toLowerCase() || ""
+        // search = search.toLowerCase() || ""
+        // paymentMethod = paymentMethod.toLowerCase() || ""
+        // const skip = (page - 1) * limit;
 
-        try {
-            const appointments = await this.prisma.appointment.findMany({
-                orderBy: {
-                    date: 'asc',
-                },
-                include: {
-                    doctor: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                    patient: {
-                        include: {
-                            user: true,
-                        },
-                    },
-                },
-            })
+        // try {
+        //     const appointments = await this.prisma.appointment.findMany({
+        //         orderBy: {
+        //             date: 'asc',
+        //         },
+        //         include: {
+        //             doctor: {
+        //                 include: {
+        //                     user: true,
+        //                 },
+        //             },
+        //             patient: {
+        //                 include: {
+        //                     user: true,
+        //                 },
+        //             },
+        //         },
+        //     })
 
-            let filteredAppointments = appointments.filter((appointment) => {
-                const doctorName = appointment.doctor.user.fullName.toLowerCase() || ""
-                const patientName = appointment.patient.user.fullName.toLowerCase() || ""
-                const appointmentStatus = appointment.status.toLowerCase() || ""
-                const appointmentPaymentMethod = appointment.paymentMethod?.toLowerCase() || ""
+        //     let filteredAppointments = appointments.filter((appointment) => {
+        //         const doctorName = appointment.doctor.user.fullName.toLowerCase() || ""
+        //         const patientName = appointment.patient.user.fullName.toLowerCase() || ""
+        //         const appointmentStatus = appointment.status.toLowerCase() || ""
+        //         const appointmentPaymentMethod = appointment.paymentMethod?.toLowerCase() || ""
 
-                const matchesSearch = search ? search.includes(doctorName) || search.includes(patientName) || search.includes(appointmentStatus) || search.includes(appointmentPaymentMethod) : true;
+        //         const matchesSearch = search ? search.includes(doctorName) || search.includes(patientName) || search.includes(appointmentStatus) || search.includes(appointmentPaymentMethod) : true;
 
-                const matchesStatus = status ? status === appointmentStatus : true
+        //         const matchesStatus = status ? status === appointmentStatus : true
 
-                const matchesPaymentMethod = paymentMethod ? paymentMethod === appointmentPaymentMethod : true
+        //         const matchesPaymentMethod = paymentMethod ? paymentMethod === appointmentPaymentMethod : true
 
-                return matchesSearch && matchesStatus && matchesPaymentMethod;
-            })
+        //         return matchesSearch && matchesStatus && matchesPaymentMethod;
+        //     })
 
-            const totalItems = filteredAppointments.length;
-            const totalPages = Math.ceil(totalItems / limit);
+        //     const totalItems = filteredAppointments.length;
+        //     const totalPages = Math.ceil(totalItems / limit);
 
-            const paginatedAppointments = filteredAppointments.slice(skip, skip + limit);
+        //     const paginatedAppointments = filteredAppointments.slice(skip, skip + limit);
 
-            return {
-                data: paginatedAppointments,
-                pagination: {
-                    totalItems,
-                    totalPages,
-                    currentPage: page,
-                    limit
-                },
-            }
-        }
+        //     return {
+        //         data: paginatedAppointments,
+        //         pagination: {
+        //             totalItems,
+        //             totalPages,
+        //             currentPage: page,
+        //             limit
+        //         },
+        //     }
+        // }
 
-        catch (error) {
-            this.handleErrorsService.handleError(error)
-        }
+        // catch (error) {
+        //     this.handleErrorsService.handleError(error)
+        // }
     }
 
     async getTotalAppointmentCount() {

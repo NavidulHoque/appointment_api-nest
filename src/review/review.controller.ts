@@ -1,12 +1,14 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UseGuards } from '@nestjs/common';
 import { Body, Post } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { ReviewDto } from './dto';
 import { CheckRoleService } from 'src/common/checkRole.service';
 import { UserDto } from 'src/user/dto';
 import { User } from 'src/user/decorator';
+import { AuthGuard } from 'src/auth/guard';
 
-@Controller('review')
+@UseGuards(AuthGuard)
+@Controller('reviews')
 export class ReviewController {
 
     constructor(
@@ -20,7 +22,7 @@ export class ReviewController {
         @User() user: UserDto
     ) {
         this.checkRoleService.checkIsPatient(user.role)
-        return this.reviewService.createReview(reviewDto);
+        return this.reviewService.createReview(reviewDto, user);
     }
 }
 

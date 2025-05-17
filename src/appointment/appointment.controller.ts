@@ -25,7 +25,7 @@ export class AppointmentController {
         @Query('status') status: string,
         @Query('paymentMethod') paymentMethod: string,
     ) {
-        this.checkRoleService.checkIsAdmin(user.role)
+        this.checkRoleService.checkIsAdminOrDoctor(user.role)
         return this.appointmentService.getAllAppointments(page, limit, search, status, paymentMethod)
     }
 
@@ -59,24 +59,6 @@ export class AppointmentController {
     getAllAppointmentsTodayOfDoctor(@User() user: AuthUser) {
         this.checkRoleService.checkIsDoctor(user.role)
         return this.appointmentService.getAllAppointmentsTodayOfDoctor()
-    }
-
-    @Get("/doctor/get-all-cancelled-appointments-doctor")
-    getAllCancelledAppointmentsOfDoctor(@User() user: AuthUser) {
-        this.checkRoleService.checkIsDoctor(user.role)
-        return this.appointmentService.getAllCancelledAppointmentsOfDoctor()
-    }
-
-    @Get("/doctor/get-all-pending-appointments-doctor")
-    getAllPendingAppointmentsOfDoctor(@User() user: AuthUser) {
-        this.checkRoleService.checkIsDoctor(user.role)
-        return this.appointmentService.getAllPendingAppointmentsOfDoctor()
-    }
-
-    @Get("/doctor/get-all-completed-appointments-doctor")
-    getAllCompletedAppointmentsOfDoctor(@User() user: AuthUser) {
-        this.checkRoleService.checkIsDoctor(user.role)
-        return this.appointmentService.getAllCompletedAppointmentsOfDoctor()
     }
 
     @Get("/doctor/get-appointments-graph-doctor")

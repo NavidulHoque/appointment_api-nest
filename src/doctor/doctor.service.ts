@@ -45,7 +45,7 @@ export class DoctorService {
 
         const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {}
 
-        if (education) query['education'] = { contains: education, mode: 'insensitive' }  //will filter case-insensitive
+        if (education) query['education'] = { contains: education, mode: 'insensitive' }  // will filter case-insensitive
 
         if (experience?.length === 2) {
             const [min, max] = experience;
@@ -57,7 +57,7 @@ export class DoctorService {
                 availableTimes: {
                     some: { contains: week }
                 }
-            }));
+            }))
         }
 
         if (fees?.length === 2) {
@@ -73,8 +73,9 @@ export class DoctorService {
                 { specialization: { contains: search, mode: 'insensitive' } },
                 { education: { contains: search, mode: 'insensitive' } },
                 { aboutMe: { contains: search, mode: 'insensitive' } },
+                { availableTimes: { some: { contains: search } } },
                 {
-                    user: {
+                    userId: {
                         OR: [
                             { fullName: { contains: search, mode: 'insensitive' } },
                             { email: { contains: search, mode: 'insensitive' } }
@@ -85,10 +86,30 @@ export class DoctorService {
         }
 
         try {
-            const doctors = await this.prisma.doctor.findMany({ where: query })
+            const [doctors, count] = await this.prisma.$transaction([
+                this.prisma.doctor.findMany({
+                    where: query,
+                    skip: (page - 1) * limit,
+                    take: limit,
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
+                }),
+
+                this.prisma.doctor.count({ where: query })
+            ])
+
+            const totalPages = Math.ceil(count / limit)
 
             return {
-                doctors
+                data: doctors,
+                pagination: {
+                    totalItems: count,
+                    totalPages: totalPages,
+                    currentPage: page,
+                    itemsPerPage: limit
+                },
+                message: "Doctors fetched successfully"
             }
         }
 
@@ -98,18 +119,37 @@ export class DoctorService {
     }
 
     //also send other related doctors in the response
-    async getADoctor(id: string) {
+    async getADoctor(id: string, page: number, limit: number) {
 
         try {
 
             const doctor = await this.prisma.doctor.findUnique({ where: { id } })
 
-            if (!doctor) {
-                this.handleErrorsService.throwNotFoundError("Doctor not found")
-            }
+            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found");
+
+            const [totalReview, averageRating, relatedDoctors] = await this.prisma.$transaction([
+
+                this.prisma.review.count({ where: { doctorId: id } }),
+
+                this.prisma.review.aggregate({
+                    where: { doctorId: id },
+                    _avg: { rating: true }
+                }),
+
+                this.prisma.doctor.findMany({
+                    where: {
+                        specialization: doctor?.specialization,
+                        isActive: true
+                    },
+                    take: 5
+                })
+            ])
+
+            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
 
             return {
-                doctor
+                data: doctor,
+                message: "Doctor fetched successfully"
             }
         }
 

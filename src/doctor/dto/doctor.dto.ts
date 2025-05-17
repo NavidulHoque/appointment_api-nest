@@ -25,10 +25,6 @@ export class DoctorDto {
     experience: number;
 
     @MinLength(10, { message: 'About me must be at least 10 characters long' })
-    @Matches(/^[a-zA-Z0-9., ]+$/, {
-        message:
-            'About me can only contain alphanumeric characters, spaces, dots and commas',
-    })
     aboutMe: string;
 
     @IsNumber()

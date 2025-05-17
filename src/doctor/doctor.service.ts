@@ -91,8 +91,22 @@ export class DoctorService {
                     where: query,
                     skip: (page - 1) * limit,
                     take: limit,
-                    orderBy: {
-                        createdAt: 'desc'
+                    include: {
+                        reviews: {
+                            select: {
+                                id: true,
+                                patient: {
+                                    select: {
+                                        id: true,
+                                        fullName: true,
+                                        email: true
+                                    }
+                                },
+                                rating: true,
+                                comment: true,
+                                createdAt: true
+                            }
+                        }
                     }
                 }),
 
@@ -118,7 +132,6 @@ export class DoctorService {
         }
     }
 
-    //also send other related doctors in the response
     async getADoctor(id: string, page: number, limit: number) {
 
         try {

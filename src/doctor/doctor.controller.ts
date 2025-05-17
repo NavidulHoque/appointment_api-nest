@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseArrayPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseArrayPipe, ParseBoolPipe, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard';
 import { DoctorService } from './doctor.service';
 import { DoctorDto } from './dto';
@@ -6,6 +6,8 @@ import { CheckRoleService } from 'src/common/checkRole.service';
 import { User } from 'src/user/decorator';
 import { AuthUser } from 'src/auth/interface';
 import { UserDto } from 'src/user/dto';
+import { ParseNumberArrayPipe } from 'src/common/pipes/parse-number-array.pipe';
+import { OptionalParseBoolPipe } from 'src/common/pipes/optional-parse-bool.pipe';
 
 @UseGuards(AuthGuard)
 @Controller('doctors')
@@ -28,20 +30,20 @@ export class DoctorController {
     @Get("/get-all-doctors")
     getAllDoctors(
         @User() user: UserDto,
-        @Query('page') page: number,
-        @Query('limit') limit: number,
+        @Query('page', ParseIntPipe) page: number,
+        @Query('limit', ParseIntPipe) limit: number,
         @Query('specialization') specialization: string,
         @Query('education') education: string,
-        @Query('experience', new ParseArrayPipe({ items: Number, separator: ',', optional: true }))
+        @Query('experience', ParseNumberArrayPipe)
         experience: number[],
 
-        @Query('fees', new ParseArrayPipe({ items: Number, separator: ',', optional: true }))
+        @Query('fees', ParseNumberArrayPipe)
         fees: number[],
 
         @Query('weeks', new ParseArrayPipe({ items: String, separator: ',', optional: true }))
         weeks: string[],
 
-        @Query('isActive') isActive: boolean,
+        @Query('isActive', OptionalParseBoolPipe) isActive: boolean,
         @Query('search') search: string,
     ) {
         this.checkRoleService.checkIsAdminOrPatient(user.role)

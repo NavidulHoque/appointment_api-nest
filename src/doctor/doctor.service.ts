@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { DoctorDto } from './dto';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { doctorSelect } from 'src/prisma/prisma-selects';
 
 @Injectable()
 export class DoctorService {
@@ -91,32 +92,20 @@ export class DoctorService {
                     where: query,
                     skip: (page - 1) * limit,
                     take: limit,
-                    include: {
-                        reviews: {
-                            select: {
-                                id: true,
-                                patient: {
-                                    select: {
-                                        id: true,
-                                        fullName: true,
-                                        email: true
-                                    }
-                                },
-                                rating: true,
-                                comment: true,
-                                createdAt: true
-                            }
-                        }
-                    }
+                    select: doctorSelect,
                 }),
 
                 this.prisma.doctor.count({ where: query })
             ])
 
+            if (!doctors) this.handleErrorsService.throwNotFoundError("Doctors not found")
+
+            const sortedDoctors = this.modifyDoctors(doctors)
+
             const totalPages = Math.ceil(count / limit)
 
             return {
-                data: doctors,
+                data: sortedDoctors,
                 pagination: {
                     totalItems: count,
                     totalPages: totalPages,
@@ -136,11 +125,14 @@ export class DoctorService {
 
         try {
 
-            const doctor = await this.prisma.doctor.findUnique({ where: { id } })
+            const fetchedDoctor = await this.prisma.doctor.findUnique({
+                where: { id },
+                select: doctorSelect
+            })
 
-            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found");
+            if (!fetchedDoctor) this.handleErrorsService.throwNotFoundError("Doctor not found");
 
-            const [totalReview, averageRating, relatedDoctors] = await this.prisma.$transaction([
+            const [totalReviews, averageRating, relatedDoctors] = await this.prisma.$transaction([
 
                 this.prisma.review.count({ where: { doctorId: id } }),
 
@@ -151,17 +143,28 @@ export class DoctorService {
 
                 this.prisma.doctor.findMany({
                     where: {
-                        specialization: doctor?.specialization,
-                        isActive: true
+                        specialization: fetchedDoctor?.specialization,
+                        isActive: true,
+                        id: {
+                            not: id,
+                        }
                     },
-                    take: 5
+                    take: 5,
+                    select: doctorSelect
                 })
             ])
 
-            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
+            const sortedRelatedDoctors = this.modifyDoctors(relatedDoctors)
 
             return {
-                data: doctor,
+                data: {
+                    doctor: {
+                        ...fetchedDoctor,
+                        averageRating: averageRating._avg.rating,
+                        totalReviews
+                    },
+                    relatedDoctors: sortedRelatedDoctors
+                },
                 message: "Doctor fetched successfully"
             }
         }
@@ -169,6 +172,39 @@ export class DoctorService {
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
+    }
+
+    private modifyDoctors(doctors: any[]) {
+
+        const doctorsWithRating = doctors.map(doctor => {
+
+            const totalRating = doctor.reviews.length > 0 ? doctor.reviews.reduce((acc: number, cur: any) => acc + cur.rating, 0) : 0
+
+            const totalReviews = doctor.reviews.length
+
+            const averageRating = totalRating ? totalRating / totalReviews : 0;
+
+            const { reviews, ...rest } = doctor
+
+            return {
+                ...rest,
+                averageRating,
+                totalReviews
+            }
+        })
+
+        const sortedDoctors = doctorsWithRating.sort((a, b) => {
+
+            if (a.averageRating === b.averageRating) {
+                return b.experience - a.experience;
+            }
+
+            else {
+                return b.averageRating - a.averageRating
+            }
+        })
+
+        return sortedDoctors
     }
 
     async updateDoctor(dto: DoctorDto, id: string) {

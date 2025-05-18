@@ -42,11 +42,11 @@ export class DoctorController {
         @Query('weeks', new ParseArrayPipe({ items: String, separator: ',', optional: true }))
         weeks: string[],
 
-        @Query('isActive', OptionalParseBoolPipe) isActive: boolean,
+        
         @Query('search') search: string,
     ) {
         this.checkRoleService.checkIsAdminOrPatient(user.role)
-        return this.doctorService.getAllDoctors(page, limit, specialization, experience, weeks,fees, isActive, search)
+        return this.doctorService.getAllDoctors(page, limit, specialization, experience, weeks,fees,  search)
     }
 
     @Get("/get-a-doctor/:id")

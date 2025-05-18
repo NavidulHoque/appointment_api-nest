@@ -14,23 +14,26 @@ datasource db {
 }
 
 model User {
-  id                 String           @id @default(uuid())
-  fullName           String
-  email              String           @unique
-  role               Role             @default(PATIENT)
-  phone              String?          @db.VarChar(11)
-  gender             Gender?
-  birthDate          DateTime?
-  address            String?
-  password           String
-  doctor             Doctor?
-  otp                String?          @unique
-  otpExpires         String?
-  refreshToken       String?          @unique
-  sentMessages       Message[]        @relation("SentMessages")     
-  receivedMessages   Message[]        @relation("ReceivedMessages")
-  appointments       Appointment[]
-  reviewsGiven       Review[]
+  id                        String           @id @default(uuid())
+  fullName                  String
+  email                     String           @unique
+  role                      Role             @default(PATIENT)
+  phone                     String?          @db.VarChar(11)
+  gender                    Gender?
+  birthDate                 DateTime?
+  address                   String?
+  password                  String
+  doctor                    Doctor?
+  otp                       String?          @unique
+  otpExpires                String?
+  refreshToken              String?          @unique
+  sentMessages              Message[]        @relation("SentMessages")     
+  receivedMessages          Message[]        @relation("ReceivedMessages")
+  patientAppointments       Appointment[]    @relation("patientAppointments")
+  doctorAppointments        Appointment[]    @relation("doctorAppointments")
+  patientReviews            Review[]         @relation("patientReviews")
+  doctorReviews             Review[]         @relation("doctorReviews")
+  notifications             Notifications[] 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,9 +52,8 @@ enum Gender {
 }
 
 model Doctor {
-  id             String         @id @default(uuid())
+  userId         String         @id
   user           User           @relation(fields: [userId], references: [id])
-  userId         String         @unique
   specialization String
   education      String
   experience     Int
@@ -60,8 +62,6 @@ model Doctor {
   revenue        Int            @default(0)
   availableTimes String[]
   isActive       Boolean        @default(false)
-  patients       Appointment[]
-  reviews        Review[]
 
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -69,9 +69,9 @@ model Doctor {
 
 model Appointment {
   id              String     @id @default(uuid())
-  patient         User       @relation(fields: [patientId], references: [id])
+  patient         User       @relation("patientAppointments", fields: [patientId], references: [id])
   patientId       String
-  doctor          Doctor     @relation(fields: [doctorId], references: [id])
+  doctor          User       @relation("doctorAppointments", fields: [doctorId], references: [id])
   doctorId        String
   date            DateTime
   status          Status     @default(PENDING)
@@ -93,9 +93,9 @@ enum Method{
 
 model Review{
   id              String     @id @default(uuid())
-  patient         User       @relation(fields: [patientId], references: [id])
+  patient         User       @relation("patientReviews", fields: [patientId], references: [id])
   patientId       String
-  doctor          Doctor     @relation(fields: [doctorId], references: [id])
+  doctor          User       @relation("doctorReviews", fields: [doctorId], references: [id])
   doctorId        String
   comment         String?
   rating          Int        
@@ -110,6 +110,14 @@ model Message {
   receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
   receiverId  String
   isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Notifications {
+  id          String   @id @default(uuid())
+  content     String
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
   createdAt   DateTime @default(now())
 }
 

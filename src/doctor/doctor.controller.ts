@@ -33,7 +33,6 @@ export class DoctorController {
         @Query('page', ParseIntPipe) page: number,
         @Query('limit', ParseIntPipe) limit: number,
         @Query('specialization') specialization: string,
-        @Query('education') education: string,
         @Query('experience', ParseNumberArrayPipe)
         experience: number[],
 
@@ -47,15 +46,15 @@ export class DoctorController {
         @Query('search') search: string,
     ) {
         this.checkRoleService.checkIsAdminOrPatient(user.role)
-        return this.doctorService.getAllDoctors(page, limit, specialization, education, experience, weeks,fees, isActive, search)
+        return this.doctorService.getAllDoctors(page, limit, specialization, experience, weeks,fees, isActive, search)
     }
 
     @Get("/get-a-doctor/:id")
     getADoctor(
         @Param('id') id: string,
         @User() user: UserDto,
-        @Query('page') page: number,
-        @Query('limit') limit: number,
+        @Query('page', ParseIntPipe) page: number,
+        @Query('limit', ParseIntPipe) limit: number,
     ) {
         this.checkRoleService.checkIsAdminOrPatient(user.role)
         return this.doctorService.getADoctor(id, page, limit)

@@ -2,11 +2,11 @@ import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class ParseNumberArrayPipe implements PipeTransform {
-    transform(value: string): number[] | [] {
+    transform(value: string[] | undefined): number[] | [] {
 
-        if (!value) return [];
+        if (!value) return []; 
 
-        return value.split(',').map(v => {
+        return value.map(v => {
             const parsed = Number(v);
             if (isNaN(parsed)) {
                 throw new BadRequestException(`Invalid number in array: ${v}`);

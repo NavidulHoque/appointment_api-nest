@@ -42,11 +42,9 @@ export class DoctorService {
         }
     }
 
-    async getAllDoctors(page: number, limit: number, specialization: string, education: string, experience: number[], weeks: string[], fees: number[], isActive: boolean, search: string) {
+    async getAllDoctors(page: number, limit: number, specialization: string, experience: number[], weeks: string[], fees: number[], isActive: boolean, search: string) {
 
-        const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {}
-
-        if (education) query['education'] = { contains: education, mode: 'insensitive' }  // will filter case-insensitive
+        const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {} // will filter case-insensitive
 
         if (experience?.length === 2) {
             const [min, max] = experience;
@@ -100,6 +98,7 @@ export class DoctorService {
 
             if (!doctors) this.handleErrorsService.throwNotFoundError("Doctors not found")
 
+            //sort doctors based on average rating
             const sortedDoctors = this.modifyDoctors(doctors)
 
             const totalPages = Math.ceil(count / limit)
@@ -123,8 +122,9 @@ export class DoctorService {
 
     async getADoctor(id: string, page: number, limit: number) {
 
-        try {
+        const skip = (page - 1) * limit
 
+        try {
             const fetchedDoctor = await this.prisma.doctor.findUnique({
                 where: { id },
                 select: doctorSelect
@@ -154,7 +154,20 @@ export class DoctorService {
                 })
             ])
 
+            //sort doctors based on average rating
             const sortedRelatedDoctors = this.modifyDoctors(relatedDoctors)
+
+            // pagination reviews
+            const totalItems = fetchedDoctor?.reviews.length
+            let totalPages: number = 0
+
+            if (totalItems) {
+                totalPages = Math.ceil(totalItems as number / limit)
+
+                const paginatedReviews = fetchedDoctor?.reviews.slice(skip, skip + limit)
+
+                fetchedDoctor.reviews = paginatedReviews
+            }
 
             return {
                 data: {
@@ -163,7 +176,13 @@ export class DoctorService {
                         averageRating: averageRating._avg.rating,
                         totalReviews
                     },
-                    relatedDoctors: sortedRelatedDoctors
+                    relatedDoctors: sortedRelatedDoctors,
+                    pagination: {
+                        totalItems,
+                        totalPages,
+                        currentPage: page,
+                        itemsPerPage: limit
+                    }
                 },
                 message: "Doctor fetched successfully"
             }

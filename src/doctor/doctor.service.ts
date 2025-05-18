@@ -42,23 +42,13 @@ export class DoctorService {
         }
     }
 
-    async getAllDoctors(page: number, limit: number, specialization: string, education: string, experience: number[], weeks: string[], fees: number[], isActive: boolean, search: string) {
+    async getAllDoctors(page: number, limit: number, specialization: string, experience: number[], weeks: string[], fees: number[], search: string) {
 
-        const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {}
-
-        if (education) query['education'] = { contains: education, mode: 'insensitive' }  // will filter case-insensitive
+        const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {} // will filter case-insensitive
 
         if (experience?.length === 2) {
             const [min, max] = experience;
             query['experience'] = { gte: min, lte: max };
-        }
-
-        if (weeks?.length) {
-            query['OR'] = weeks.map(week => ({
-                availableTimes: {
-                    some: { contains: week }
-                }
-            }))
         }
 
         if (fees?.length === 2) {
@@ -66,11 +56,10 @@ export class DoctorService {
             query['fees'] = { gte: min, lte: max };
         }
 
-        if (isActive) query['isActive'] = isActive
+        // if (isActive) query['isActive'] = isActive
 
         if (search) {
             query.OR = [
-                ...(query.OR || []), // preserve existing OR filters (like weeks)
                 { specialization: { contains: search, mode: 'insensitive' } },
                 { education: { contains: search, mode: 'insensitive' } },
                 { aboutMe: { contains: search, mode: 'insensitive' } },
@@ -100,6 +89,7 @@ export class DoctorService {
 
             if (!doctors) this.handleErrorsService.throwNotFoundError("Doctors not found")
 
+            //sort doctors based on average rating
             const sortedDoctors = this.modifyDoctors(doctors)
 
             const totalPages = Math.ceil(count / limit)
@@ -123,10 +113,11 @@ export class DoctorService {
 
     async getADoctor(id: string, page: number, limit: number) {
 
-        try {
+        const skip = (page - 1) * limit
 
+        try {
             const fetchedDoctor = await this.prisma.doctor.findUnique({
-                where: { id },
+                where: { userId: id },
                 select: doctorSelect
             })
 
@@ -145,7 +136,7 @@ export class DoctorService {
                     where: {
                         specialization: fetchedDoctor?.specialization,
                         isActive: true,
-                        id: {
+                        userId: {
                             not: id,
                         }
                     },
@@ -154,7 +145,20 @@ export class DoctorService {
                 })
             ])
 
-            const sortedRelatedDoctors = this.modifyDoctors(relatedDoctors)
+            //sort doctors based on average rating
+            // const sortedRelatedDoctors = this.modifyDoctors(relatedDoctors)
+
+            // // pagination reviews
+            // const totalItems = fetchedDoctor?.reviews.length
+            // let totalPages: number = 0
+
+            // if (totalItems) {
+            //     totalPages = Math.ceil(totalItems as number / limit)
+
+            //     const paginatedReviews = fetchedDoctor?.reviews.slice(skip, skip + limit)
+
+            //     fetchedDoctor.reviews = paginatedReviews
+            // }
 
             return {
                 data: {
@@ -163,7 +167,13 @@ export class DoctorService {
                         averageRating: averageRating._avg.rating,
                         totalReviews
                     },
-                    relatedDoctors: sortedRelatedDoctors
+                    // relatedDoctors: sortedRelatedDoctors,
+                    // pagination: {
+                    //     totalItems,
+                    //     totalPages,
+                    //     currentPage: page,
+                    //     itemsPerPage: limit
+                    // }
                 },
                 message: "Doctor fetched successfully"
             }
@@ -214,7 +224,7 @@ export class DoctorService {
         try {
 
             const doctor = await this.prisma.doctor.update({
-                where: { id },
+                where: { userId: id },
                 data: { specialization, education, experience, aboutMe, fees, availableTimes }
             })
 
@@ -238,7 +248,7 @@ export class DoctorService {
         try {
 
             const doctor = await this.prisma.doctor.update({
-                where: { id },
+                where: { userId: id },
                 data: {
                     availableTimes: {
                         push: availableTime
@@ -264,14 +274,14 @@ export class DoctorService {
     async removeAvailableTime(id: string, availableTime: string) {
 
         try {
-            const doctorRecord = await this.prisma.doctor.findUnique({ where: { id } });
+            const doctorRecord = await this.prisma.doctor.findUnique({ where: { userId: id } });
 
             if (!doctorRecord) this.handleErrorsService.throwNotFoundError("Doctor not found")
 
             const updatedAvailableTimes = doctorRecord?.availableTimes.filter((time: string) => time !== availableTime);
 
             const doctor = await this.prisma.doctor.update({
-                where: { id },
+                where: { userId: id },
                 data: {
                     availableTimes: updatedAvailableTimes
                 }
@@ -294,7 +304,7 @@ export class DoctorService {
         try {
 
             const doctor = await this.prisma.doctor.update({
-                where: { id },
+                where: { userId: id },
                 data: {
                     isActive: true
                 }
@@ -317,7 +327,7 @@ export class DoctorService {
         try {
 
             const doctor = await this.prisma.doctor.update({
-                where: { id },
+                where: { userId: id },
                 data: {
                     isActive: false
                 }
@@ -338,7 +348,7 @@ export class DoctorService {
     async deleteDoctor(id: string) {
 
         try {
-            const doctor = await this.prisma.doctor.delete({ where: { id } })
+            const doctor = await this.prisma.doctor.delete({ where: { userId: id } })
 
             if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
 

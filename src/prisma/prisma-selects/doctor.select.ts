@@ -1,7 +1,7 @@
 export const doctorSelect = {
-  id: true,
   user: {
     select: {
+      id: true,
       fullName: true,
       email: true,
     },
@@ -13,22 +13,4 @@ export const doctorSelect = {
   fees: true,
   availableTimes: true,
   isActive: true,
-  reviews: {
-    orderBy: {
-      createdAt: 'desc',
-    },
-    select: {
-      id: true,
-      patient: {
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-        },
-      },
-      rating: true,
-      comment: true,
-      createdAt: true,
-    },
-  },
-} as const;
+};

@@ -42,7 +42,16 @@ export class DoctorService {
         }
     }
 
-    async getAllDoctors(page: number, limit: number, specialization: string, experience: number[], weeks: string[], fees: number[], isActive: boolean, search: string) {
+    async getAllDoctors(
+        page: number, 
+        limit: number, 
+        specialization: string, 
+        experience: number[], 
+        weeks: string[], 
+        fees: number[], 
+        isActive: boolean, 
+        search: string
+    ) {
 
         const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {} // will filter case-insensitive
 
@@ -63,9 +72,8 @@ export class DoctorService {
                 { specialization: { contains: search, mode: 'insensitive' } },
                 { education: { contains: search, mode: 'insensitive' } },
                 { aboutMe: { contains: search, mode: 'insensitive' } },
-                { availableTimes: { some: { contains: search } } },
                 {
-                    userId: {
+                    user: {
                         OR: [
                             { fullName: { contains: search, mode: 'insensitive' } },
                             { email: { contains: search, mode: 'insensitive' } }
@@ -236,6 +244,29 @@ export class DoctorService {
         })
 
         return sortedDoctors
+    }
+
+    async getTotalRevenueOfDoctor(id: string) {
+
+        try {
+            const doctor = await this.prisma.doctor.findUnique({
+                where: { userId: id },
+                select: { revenue: true }
+            })
+
+            if (!doctor) {
+                this.handleErrorsService.throwNotFoundError("Doctor not found")
+            }
+
+            return {
+                totalRevenue: doctor?.revenue,
+                message: "Total revenue of doctor fetched successfully"
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
     }
 
     async updateDoctor(dto: DoctorDto, id: string) {

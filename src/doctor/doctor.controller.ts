@@ -49,7 +49,16 @@ export class DoctorController {
         @Query('search') search: string,
     ) {
         this.checkRoleService.checkIsAdminOrPatient(user.role)
-        return this.doctorService.getAllDoctors(page, limit, specialization, experience, weeks, fees, isActive, search)
+        return this.doctorService.getAllDoctors(
+            page, 
+            limit, 
+            specialization, 
+            experience, 
+            weeks, 
+            fees, 
+            isActive, 
+            search
+        )
     }
 
     @Get("/get-a-doctor/:id")
@@ -61,6 +70,15 @@ export class DoctorController {
     ) {
         this.checkRoleService.checkIsAdminOrPatient(user.role)
         return this.doctorService.getADoctor(id, page, limit)
+    }
+
+    @Get("/get-total-revenue/:id")
+    getTotalRevenueOfDoctor(
+        @Param('id') id: string,
+        @User() user: UserDto,
+    ) {
+        this.checkRoleService.checkIsDoctor(user.role)
+        return this.doctorService.getTotalRevenueOfDoctor(id)
     }
 
     @Patch("/update-doctor/:id")

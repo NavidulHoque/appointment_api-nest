@@ -12,66 +12,100 @@ export class AppointmentService {
     ) { }
 
     //admin dashboard
-    async getAllAppointments(page: number, limit: number, search: string, status: string, paymentMethod: string) {
+    async getAllAppointments(
+        page: number,
+        limit: number,
+        search: string,
+        doctorId: string,
+        status: string,
+        isPaid: boolean,
+        paymentMethod: string,
+        isCompleted: boolean,
+    ) {
+        const skip = (page - 1) * limit;
 
-        // status = status.toLowerCase() || ""
-        // search = search.toLowerCase() || ""
-        // paymentMethod = paymentMethod.toLowerCase() || ""
-        // const skip = (page - 1) * limit;
+        const query: any = doctorId ? { doctorId } : {}
 
-        // try {
-        //     const appointments = await this.prisma.appointment.findMany({
-        //         orderBy: {
-        //             date: 'asc',
-        //         },
-        //         include: {
-        //             doctor: {
-        //                 include: {
-        //                     user: true,
-        //                 },
-        //             },
-        //             patient: {
-        //                 include: {
-        //                     user: true,
-        //                 },
-        //             },
-        //         },
-        //     })
+        if (status) query.status = { status: { contains: status, mode: 'insensitive' } }
 
-        //     let filteredAppointments = appointments.filter((appointment) => {
-        //         const doctorName = appointment.doctor.user.fullName.toLowerCase() || ""
-        //         const patientName = appointment.patient.user.fullName.toLowerCase() || ""
-        //         const appointmentStatus = appointment.status.toLowerCase() || ""
-        //         const appointmentPaymentMethod = appointment.paymentMethod?.toLowerCase() || ""
+        if (isPaid) query.isPaid = isPaid
 
-        //         const matchesSearch = search ? search.includes(doctorName) || search.includes(patientName) || search.includes(appointmentStatus) || search.includes(appointmentPaymentMethod) : true;
+        if (paymentMethod) query.paymentMethod = { status: { contains: paymentMethod, mode: 'insensitive' } }
 
-        //         const matchesStatus = status ? status === appointmentStatus : true
+        if (isCompleted) query.isCompleted = isCompleted
 
-        //         const matchesPaymentMethod = paymentMethod ? paymentMethod === appointmentPaymentMethod : true
+        if (search) {
+            query.OR = [
+                { status: { contains: search, mode: 'insensitive' } },
+                { paymentMethod: { contains: search, mode: 'insensitive' } },
+                {
+                    doctor: {
+                        OR: [
+                            { fullName: { contains: search, mode: 'insensitive' } },
+                            { email: { contains: search, mode: 'insensitive' } }
+                        ]
+                    }
+                },
+                {
+                    patient: {
+                        OR: [
+                            { fullName: { contains: search, mode: 'insensitive' } },
+                            { email: { contains: search, mode: 'insensitive' } }
+                        ]
+                    }
+                },
+            ]
+        }
 
-        //         return matchesSearch && matchesStatus && matchesPaymentMethod;
-        //     })
+        try {
+            const [appointments, totalAppointments] = await this.prisma.$transaction([
+                this.prisma.appointment.findMany({
+                    where: query,
+                    orderBy: {
+                        date: 'desc',
+                    },
+                    select: {
+                        doctor: {
+                            select: {
+                                id: true,
+                                fullName: true,
+                                email: true,
+                            }
+                        },
+                        patient: {
+                            select: {
+                                id: true,
+                                fullName: true,
+                                email: true,
+                            },
+                        },
+                        date: true,
+                        status: true,
+                        isPaid: true,
+                        paymentMethod: true,
+                        isCompleted: true,
+                    },
+                    take: limit,
+                    skip
+                }),
 
-        //     const totalItems = filteredAppointments.length;
-        //     const totalPages = Math.ceil(totalItems / limit);
+                this.prisma.appointment.count({ where: query })
+            ])
 
-        //     const paginatedAppointments = filteredAppointments.slice(skip, skip + limit);
+            return {
+                data: appointments,
+                pagination: {
+                    totalItems: totalAppointments,
+                    totalPages: Math.ceil(totalAppointments / limit),
+                    currentPage: page,
+                    itemsPerPage: limit
+                },
+            }
+        }
 
-        //     return {
-        //         data: paginatedAppointments,
-        //         pagination: {
-        //             totalItems,
-        //             totalPages,
-        //             currentPage: page,
-        //             limit
-        //         },
-        //     }
-        // }
-
-        // catch (error) {
-        //     this.handleErrorsService.handleError(error)
-        // }
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
     }
 
     async getTotalAppointmentCount() {
@@ -87,7 +121,6 @@ export class AppointmentService {
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
-
     }
 
     async getTotalAppointmentsGraph() {
@@ -133,8 +166,8 @@ export class AppointmentService {
 
     }
 
-    getAllPatients(){
-        
+    getAllPatients() {
+
     }
 
     async getAnAppointment(id: string) {

@@ -115,56 +115,61 @@ export class AuthService {
     return refreshToken
   }
 
-  
-  async refreshAccessToken(refreshToken: string) {
-    try {
-      const user = await this.prisma.user.findFirst({
-        where: { refreshToken }
-      })
-
-      if (!user) {
-        this.handleErrorsService.throwBadRequestError('User not found')
-      }
-
-      const accessToken = await this.generateAccessToken({ id: user?.id })
-
-      return {
-        message: 'Refresh token successfully',
-        data: accessToken
-      }
-    }
-
-    catch (error) {
-      throw error; //throws server error
-    }
-  }
-
-  async logout(id: string) {
-
-    try {
-      const user = await this.prisma.user.update({
-        where: { id },
-        data: { refreshToken: null }
-      })
-
-      return {
-        message: 'Logged out successfully',
-        data: user
-      }
-    }
-
-    catch (error) {
-      throw error; //throws server error
-    }
-  }
-
-  // async forgetPassword(email: string) {
+  // async refreshAccessToken(refreshToken: string) {
   //   try {
-  //     const user = await this.fetchUserService.fetchUser(email)
+  //     const user = await this.prisma.user.findFirst({
+  //       where: { refreshToken }
+  //     })
 
   //     if (!user) {
-  //       this.handleErrorsService.throwBadRequestError('User not found');
+  //       this.handleErrorsService.throwBadRequestError('User not found')
   //     }
+
+  //     const accessToken = await this.generateAccessToken({ id: user?.id })
+
+  //     return {
+  //       message: 'Refresh token successfully',
+  //       data: accessToken
+  //     }
+  //   }
+
+  //   catch (error) {
+  //     throw error; //throws server error
+  //   }
+  // }
+
+  // async logout(id: string) {
+
+  //   try {
+  //     const user = await this.prisma.user.update({
+  //       where: { id },
+  //       data: { refreshToken: null }
+  //     })
+
+  //     return {
+  //       message: 'Logged out successfully',
+  //       data: user
+  //     }
+  //   }
+
+  //   catch (error) {
+  //     throw error; //throws server error
+  //   }
+  // }
+
+  // async forgetPassword(email: string) {
+
+  //   try {
+  //     if (!email) {
+  //       this.handleErrorsService.throwBadRequestError('Email is required')
+  //     }
+
+  //     const user = await this.fetchUserService.fetchUser(email)
+
+  //     if (!user) this.handleErrorsService.throwBadRequestError('Invalid Email');
+
+  //     const otp = Math.floor(100000 + Math.random() * 900000);
+  //     const otpExpires = new Date(Date.now() + emailExpires);
 
   //     const { otp } = await this.prisma.user.update({
   //       where: { id: user.id },

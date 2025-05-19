@@ -82,6 +82,7 @@ model Appointment {
 
 enum Status{
   PENDING
+  RUNNING
   COMPLETED
   CANCELLED
 }

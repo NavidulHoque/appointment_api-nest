@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { AuthGuard } from 'src/auth/guard';
 import { AppointmentDto } from './dto';
 import { CheckRoleService } from 'src/common/checkRole.service';
 import { User } from 'src/user/decorator';
-import { AuthUser } from 'src/auth/interface';
 import { OptionalParseBoolPipe } from 'src/common/pipes/optional-parse-bool.pipe';
+import { UserDto } from 'src/user/dto';
 
 @UseGuards(AuthGuard)
 @Controller('appointments')
@@ -19,11 +19,12 @@ export class AppointmentController {
     //admin dashboard
     @Get("/get-all-appointments")
     getAllAppointments(
-        @User() user: AuthUser,
+        @User() user: UserDto,
         @Query('page', ParseIntPipe) page: number,
         @Query('limit', ParseIntPipe) limit: number,
         @Query('search') search: string,
         @Query('doctorId') doctorId: string,
+        @Query("patientId") patientId: string,
         @Query('status') status: string,
         @Query('isPaid', OptionalParseBoolPipe) 
         isPaid: boolean,
@@ -33,12 +34,13 @@ export class AppointmentController {
         @Query('isCompleted', OptionalParseBoolPipe) 
         isCompleted: boolean,
     ) {
-        this.checkRoleService.checkIsAdminOrDoctor(user.role)
+        this.checkRoleService.checkIsAdminOrPatientOrDoctor(user.role)
         return this.appointmentService.getAllAppointments(
             page, 
             limit, 
             search, 
-            doctorId, 
+            doctorId,
+            patientId,
             status, 
             isPaid, 
             paymentMethod, 
@@ -47,39 +49,39 @@ export class AppointmentController {
     }
 
     @Get("/admin/get-total-appointment-count")
-    getTotalAppointmentCount(@User() user: AuthUser) {
+    getTotalAppointmentCount(@User() user: UserDto) {
         this.checkRoleService.checkIsAdmin(user.role)
         return this.appointmentService.getTotalAppointmentCount()
     }
 
     @Get("/admin/get-total-appointments-graph")
-    getTotalAppointmentsGraph(@User() user: AuthUser) {
+    getTotalAppointmentsGraph(@User() user: UserDto) {
         this.checkRoleService.checkIsAdmin(user.role)
         return this.appointmentService.getTotalAppointmentsGraph()
     }
 
     //patient dashboard
     @Get("/patient/get-appointments-graph-patient")
-    getAppointmentsGraphOfPatient(@User() user: AuthUser) {
+    getAppointmentsGraphOfPatient(@User() user: UserDto) {
         this.checkRoleService.checkIsPatient(user.role)
         return this.appointmentService.getAppointmentsGraphOfPatient()
     }
 
     //doctor dashboard
     @Get("/doctor/get-total-appointments-count-doctor")
-    getTotalAppointmentsCountOfDoctor(@User() user: AuthUser) {
+    getTotalAppointmentsCountOfDoctor(@User() user: UserDto) {
         this.checkRoleService.checkIsDoctor(user.role)
         return this.appointmentService.getTotalAppointmentsCountOfDoctor()
     }
 
     @Get("/doctor/get-all-appointments-today-doctor")
-    getAllAppointmentsTodayOfDoctor(@User() user: AuthUser) {
+    getAllAppointmentsTodayOfDoctor(@User() user: UserDto) {
         this.checkRoleService.checkIsDoctor(user.role)
         return this.appointmentService.getAllAppointmentsTodayOfDoctor()
     }
 
     @Get("/doctor/get-appointments-graph-doctor")
-    getAppointmentsGraphOfDoctor(@User() user: AuthUser) {
+    getAppointmentsGraphOfDoctor(@User() user: UserDto) {
         this.checkRoleService.checkIsDoctor(user.role)
         return this.appointmentService.getAppointmentsGraphOfDoctor()
     }

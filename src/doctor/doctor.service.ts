@@ -3,6 +3,7 @@ import { DoctorDto } from './dto';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { doctorSelect } from 'src/prisma/prisma-selects';
+import { UserDto } from 'src/user/dto';
 
 @Injectable()
 export class DoctorService {
@@ -43,13 +44,13 @@ export class DoctorService {
     }
 
     async getAllDoctors(
-        page: number, 
-        limit: number, 
-        specialization: string, 
-        experience: number[], 
-        weeks: string[], 
-        fees: number[], 
-        isActive: boolean, 
+        page: number,
+        limit: number,
+        specialization: string,
+        experience: number[],
+        weeks: string[],
+        fees: number[],
+        isActive: boolean,
         search: string
     ) {
 
@@ -197,12 +198,12 @@ export class DoctorService {
                         reviews
                     },
                     relatedDoctors: sortedRelatedDoctors,
-                    pagination: {
-                        totalItems: totalReviews,
-                        totalPages: Math.ceil(totalReviews / limit),
-                        currentPage: page,
-                        itemsPerPage: limit
-                    }
+                },
+                pagination: {
+                    totalItems: totalReviews,
+                    totalPages: Math.ceil(totalReviews / limit),
+                    currentPage: page,
+                    itemsPerPage: limit
                 },
                 message: "Doctor fetched successfully"
             }
@@ -246,7 +247,9 @@ export class DoctorService {
         return sortedDoctors
     }
 
-    async getTotalRevenueOfDoctor(id: string) {
+    async getTotalRevenue(user: UserDto) {
+
+        const { id } = user
 
         try {
             const doctor = await this.prisma.doctor.findUnique({
@@ -254,9 +257,7 @@ export class DoctorService {
                 select: { revenue: true }
             })
 
-            if (!doctor) {
-                this.handleErrorsService.throwNotFoundError("Doctor not found")
-            }
+            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
 
             return {
                 totalRevenue: doctor?.revenue,
@@ -308,9 +309,7 @@ export class DoctorService {
                 }
             })
 
-            if (!doctor) {
-                this.handleErrorsService.throwNotFoundError("Doctor not found")
-            }
+            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
 
             return {
                 data: doctor,

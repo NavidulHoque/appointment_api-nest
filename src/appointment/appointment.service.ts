@@ -17,16 +17,30 @@ export class AppointmentService {
         limit: number,
         search: string,
         doctorId: string,
+        patientId: string,
         status: string,
         isPaid: boolean,
         paymentMethod: string,
         isCompleted: boolean,
     ) {
         const skip = (page - 1) * limit;
+        let orderBy: any = { createdAt: 'desc' }
 
         const query: any = doctorId ? { doctorId } : {}
 
-        if (status) query.status = { status: { contains: status, mode: 'insensitive' } }
+        if (patientId) query.patientId = patientId
+
+        if (status) {
+            query.status = { status: { contains: status, mode: 'insensitive' } }
+
+            if (status.toLowerCase() === 'pending') {
+                orderBy = { date: 'asc' }
+            }
+
+            else if (status.toLowerCase() === 'completed') {
+                orderBy = { date: 'desc' }
+            }
+        }
 
         if (isPaid) query.isPaid = isPaid
 
@@ -62,7 +76,7 @@ export class AppointmentService {
                 this.prisma.appointment.findMany({
                     where: query,
                     orderBy: {
-                        date: 'desc',
+                        date: 'asc',
                     },
                     select: {
                         doctor: {

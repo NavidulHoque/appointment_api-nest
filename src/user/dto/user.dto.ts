@@ -61,7 +61,7 @@ export class UserDto {
     @IsOptional()
     @IsString()
     @MinLength(5, { message: 'Address must be at least 5 characters long' })
-    address?: string | null;
+    address?: string;
 
     @IsString()
     @MinLength(8, { message: 'Password must be at least 8 characters long' })
@@ -71,13 +71,17 @@ export class UserDto {
     })
     password: string;
 
+    @IsString()
+    @IsOptional()
+    refreshToken?: string;
+
     @IsOptional()
     @Type(() => Date)
     @IsDate({ message: 'Created At must be a valid date' })
-    createdAt?: Date | null;
+    createdAt?: Date;
 
     @IsOptional()
     @Type(() => Date)
     @IsDate({ message: 'Updated At must be a valid date' })
-    updatedAt?: Date | null;
+    updatedAt?: Date;
 }

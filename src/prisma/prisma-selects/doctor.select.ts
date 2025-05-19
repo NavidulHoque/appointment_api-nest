@@ -1,7 +1,7 @@
 export const doctorSelect = {
+  userId: true,
   user: {
     select: {
-      id: true,
       fullName: true,
       email: true,
     },

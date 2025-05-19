@@ -42,7 +42,7 @@ export class DoctorService {
         }
     }
 
-    async getAllDoctors(page: number, limit: number, specialization: string, experience: number[], weeks: string[], fees: number[], search: string) {
+    async getAllDoctors(page: number, limit: number, specialization: string, experience: number[], weeks: string[], fees: number[], isActive: boolean, search: string) {
 
         const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {} // will filter case-insensitive
 
@@ -56,7 +56,7 @@ export class DoctorService {
             query['fees'] = { gte: min, lte: max };
         }
 
-        // if (isActive) query['isActive'] = isActive
+        if (isActive) query['isActive'] = isActive
 
         if (search) {
             query.OR = [
@@ -84,18 +84,31 @@ export class DoctorService {
                     select: doctorSelect,
                 }),
 
-                this.prisma.doctor.count({ where: query })
+                this.prisma.doctor.count({ where: query }),
             ])
 
             if (!doctors) this.handleErrorsService.throwNotFoundError("Doctors not found")
 
             //sort doctors based on average rating
-            const sortedDoctors = this.modifyDoctors(doctors)
+            const sortedDoctors = await this.modifyDoctors(doctors)
+
+            let filteredDoctors: any[] = []
+
+            if (weeks) {
+                filteredDoctors = sortedDoctors.filter(doctor => {
+
+                    const doctorAvailableTimes = doctor.availableTimes
+
+                    return doctorAvailableTimes.some((time: string) => {
+                        return weeks.some((week: string) => time.toLowerCase().includes(week.toLowerCase()))
+                    })
+                })
+            }
 
             const totalPages = Math.ceil(count / limit)
 
             return {
-                data: sortedDoctors,
+                data: filteredDoctors.length ? filteredDoctors : sortedDoctors,
                 pagination: {
                     totalItems: count,
                     totalPages: totalPages,
@@ -123,7 +136,26 @@ export class DoctorService {
 
             if (!fetchedDoctor) this.handleErrorsService.throwNotFoundError("Doctor not found");
 
-            const [totalReviews, averageRating, relatedDoctors] = await this.prisma.$transaction([
+            const [reviews, totalReviews, averageRating, relatedDoctors] = await this.prisma.$transaction([
+
+                this.prisma.review.findMany({
+                    where: { doctorId: id },
+                    orderBy: { createdAt: 'desc' },
+                    select: {
+                        id: true,
+                        patient: {
+                            select: {
+                                fullName: true,
+                                email: true
+                            }
+                        },
+                        comment: true,
+                        rating: true,
+                        createdAt: true
+                    },
+                    skip: skip,
+                    take: limit
+                }),
 
                 this.prisma.review.count({ where: { doctorId: id } }),
 
@@ -146,34 +178,23 @@ export class DoctorService {
             ])
 
             //sort doctors based on average rating
-            // const sortedRelatedDoctors = this.modifyDoctors(relatedDoctors)
-
-            // // pagination reviews
-            // const totalItems = fetchedDoctor?.reviews.length
-            // let totalPages: number = 0
-
-            // if (totalItems) {
-            //     totalPages = Math.ceil(totalItems as number / limit)
-
-            //     const paginatedReviews = fetchedDoctor?.reviews.slice(skip, skip + limit)
-
-            //     fetchedDoctor.reviews = paginatedReviews
-            // }
+            const sortedRelatedDoctors = await this.modifyDoctors(relatedDoctors)
 
             return {
                 data: {
                     doctor: {
                         ...fetchedDoctor,
                         averageRating: averageRating._avg.rating,
-                        totalReviews
+                        totalReviews,
+                        reviews
                     },
-                    // relatedDoctors: sortedRelatedDoctors,
-                    // pagination: {
-                    //     totalItems,
-                    //     totalPages,
-                    //     currentPage: page,
-                    //     itemsPerPage: limit
-                    // }
+                    relatedDoctors: sortedRelatedDoctors,
+                    pagination: {
+                        totalItems: totalReviews,
+                        totalPages: Math.ceil(totalReviews / limit),
+                        currentPage: page,
+                        itemsPerPage: limit
+                    }
                 },
                 message: "Doctor fetched successfully"
             }
@@ -184,24 +205,24 @@ export class DoctorService {
         }
     }
 
-    private modifyDoctors(doctors: any[]) {
+    private async modifyDoctors(doctors: any[]) {
 
-        const doctorsWithRating = doctors.map(doctor => {
+        const doctorsWithRating = await Promise.all(doctors.map(async (doctor) => {
 
-            const totalRating = doctor.reviews.length > 0 ? doctor.reviews.reduce((acc: number, cur: any) => acc + cur.rating, 0) : 0
-
-            const totalReviews = doctor.reviews.length
-
-            const averageRating = totalRating ? totalRating / totalReviews : 0;
-
-            const { reviews, ...rest } = doctor
+            const [totalReviews, averageRating] = await this.prisma.$transaction([
+                this.prisma.review.count({ where: { doctorId: doctor.userId } }),
+                this.prisma.review.aggregate({
+                    where: { doctorId: doctor.userId },
+                    _avg: { rating: true },
+                }),
+            ]);
 
             return {
-                ...rest,
-                averageRating,
-                totalReviews
-            }
-        })
+                ...doctor,
+                totalReviews,
+                averageRating: averageRating._avg.rating ? averageRating._avg.rating : 0,
+            };
+        }))
 
         const sortedDoctors = doctorsWithRating.sort((a, b) => {
 

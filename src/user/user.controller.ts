@@ -4,25 +4,35 @@ import { User } from './decorator';
 import { UserService } from './user.service';
 import { UserDto } from './dto';
 import { AuthUser } from 'src/auth/interface';
+import { CheckRoleService } from 'src/common/checkRole.service';
 
 @UseGuards(AuthGuard)
 @Controller('users')
 export class UserController {
 
-    constructor(private userService: UserService) { }
+    constructor(
+        private userService: UserService,
+        private checkRoleService: CheckRoleService
+    ) { }
 
-    @Get("")
-    getUser(@User() user: any) {
+    @Get("/get-user")
+    getUser(@User() user: UserDto) {
+        this.checkRoleService.checkIsAdminOrPatient(user.role)
         return this.userService.getUser(user)
     }
 
-    @Put("")
-    updateUser(@Body() dto: UserDto, @User() user: AuthUser) {
-        this.userService.updateUser(dto, user)
+    @Put("/update-user")
+    updateUser(
+        @Body() dto: UserDto, 
+        @User() user: UserDto
+    ) {
+        this.checkRoleService.checkIsAdminOrPatient(user.role)
+        return this.userService.updateUser(dto, user.id)
     }
 
     @Delete("")
-    deleteUser(@User() user: AuthUser) {
+    deleteUser(@User() user: UserDto) {
+        this.checkRoleService.checkIsAdminOrPatient(user.role)
         return this.userService.deleteUser(user)
     }
 }

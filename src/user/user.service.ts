@@ -14,22 +14,24 @@ export class UserService {
 
     getUser(user: UserDto) {
         const { fullName, email, phone, gender, birthDate, address } = user
-        return { fullName, email, phone, gender, birthDate, address }
+        return {
+            data: { fullName, email, phone, gender, birthDate, address },
+            message: "User fetched successfully"
+        }
     }
 
-    async updateUser(dto: UserDto, user: AuthUser) {
-        const { id } = user
-        const { fullName, email, phone, gender, birthDate, address } = dto
+    async updateUser(dto: UserDto, id: string) {
+        const { fullName, email, phone, gender, birthDate, address, password } = dto
 
         try {
             const updatedUser = await this.prisma.user.update({
                 where: { id },
-                data: { fullName, email, phone, gender, birthDate, address }
+                data: { fullName, email, phone, gender, birthDate, address, password }
             })
 
             return {
                 message: 'User updated successfully',
-                user: updatedUser
+                data: updatedUser
             }
         }
 
@@ -38,7 +40,8 @@ export class UserService {
         }
     }
 
-    async deleteUser(user: AuthUser) {
+    async deleteUser(user: UserDto) {
+
         const { id } = user
 
         try {

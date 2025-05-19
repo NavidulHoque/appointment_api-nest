@@ -33,20 +33,23 @@ export class DoctorController {
         @Query('page', ParseIntPipe) page: number,
         @Query('limit', ParseIntPipe) limit: number,
         @Query('specialization') specialization: string,
+
         @Query('experience', ParseNumberArrayPipe)
         experience: number[],
 
         @Query('fees', ParseNumberArrayPipe)
         fees: number[],
 
-        @Query('weeks', new ParseArrayPipe({ items: String, separator: ',', optional: true }))
+        @Query('weeks', new ParseArrayPipe({ items: String, separator: '&', optional: true }))
         weeks: string[],
 
-        
+        @Query('isActive', OptionalParseBoolPipe)
+        isActive: boolean,
+
         @Query('search') search: string,
     ) {
         this.checkRoleService.checkIsAdminOrPatient(user.role)
-        return this.doctorService.getAllDoctors(page, limit, specialization, experience, weeks,fees,  search)
+        return this.doctorService.getAllDoctors(page, limit, specialization, experience, weeks, fees, isActive, search)
     }
 
     @Get("/get-a-doctor/:id")

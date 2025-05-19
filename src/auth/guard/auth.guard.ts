@@ -35,6 +35,8 @@ export class AuthGuard implements CanActivate {
                 where: { id: payload.id }
             })
 
+            if (!user) this.handleErrorService.throwUnauthorizedError("User not found")
+
             request['user'] = user;
         }
 

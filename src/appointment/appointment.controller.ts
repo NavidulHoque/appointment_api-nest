@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, Request, UseGuards } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { AuthGuard } from 'src/auth/guard';
 import { AppointmentDto } from './dto';
 import { CheckRoleService } from 'src/common/checkRole.service';
 import { User } from 'src/user/decorator';
 import { AuthUser } from 'src/auth/interface';
+import { OptionalParseBoolPipe } from 'src/common/pipes/optional-parse-bool.pipe';
 
 @UseGuards(AuthGuard)
 @Controller('appointments')
@@ -16,17 +17,33 @@ export class AppointmentController {
     ) { }
 
     //admin dashboard
-    @Get("/admin/get-all-appointments")
+    @Get("/get-all-appointments")
     getAllAppointments(
         @User() user: AuthUser,
-        @Query('page') page: number,
-        @Query('limit') limit: number,
+        @Query('page', ParseIntPipe) page: number,
+        @Query('limit', ParseIntPipe) limit: number,
         @Query('search') search: string,
+        @Query('doctorId') doctorId: string,
         @Query('status') status: string,
+        @Query('isPaid', OptionalParseBoolPipe) 
+        isPaid: boolean,
+
         @Query('paymentMethod') paymentMethod: string,
+
+        @Query('isCompleted', OptionalParseBoolPipe) 
+        isCompleted: boolean,
     ) {
         this.checkRoleService.checkIsAdminOrDoctor(user.role)
-        return this.appointmentService.getAllAppointments(page, limit, search, status, paymentMethod)
+        return this.appointmentService.getAllAppointments(
+            page, 
+            limit, 
+            search, 
+            doctorId, 
+            status, 
+            isPaid, 
+            paymentMethod, 
+            isCompleted
+        )
     }
 
     @Get("/admin/get-total-appointment-count")

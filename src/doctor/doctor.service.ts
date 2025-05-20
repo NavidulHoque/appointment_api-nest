@@ -47,6 +47,8 @@ export class DoctorService {
 
         const { page, limit, search, specialization, experience, fees, weeks, isActive } = queryParams
 
+        const skip = (page - 1) * limit
+
         const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {} // will filter case-insensitive
 
         if (experience?.length === 2) {
@@ -59,61 +61,53 @@ export class DoctorService {
             query['fees'] = { gte: min, lte: max };
         }
 
-        if (isActive) query['isActive'] = isActive
-
-        if (search) {
-            query.OR = [
-                { specialization: { contains: search, mode: 'insensitive' } },
-                { education: { contains: search, mode: 'insensitive' } },
-                { aboutMe: { contains: search, mode: 'insensitive' } },
-                {
-                    user: {
-                        OR: [
-                            { fullName: { contains: search, mode: 'insensitive' } },
-                            { email: { contains: search, mode: 'insensitive' } }
-                        ]
-                    }
-                }
-            ];
-        }
+        if (isActive !== undefined) query['isActive'] = isActive
 
         try {
-            const [doctors, count] = await this.prisma.$transaction([
-                this.prisma.doctor.findMany({
-                    where: query,
-                    skip: (page as number - 1) * (limit as number),
-                    take: limit,
-                    select: doctorSelect,
-                }),
-
-                this.prisma.doctor.count({ where: query }),
-            ])
+            const doctors = await this.prisma.doctor.findMany({
+                where: query,
+                select: doctorSelect,
+            })
 
             if (!doctors) this.handleErrorsService.throwNotFoundError("Doctors not found")
 
+            let filteredDoctors = doctors.filter((doctor) => {
+
+                const specialization = doctor.specialization?.toLowerCase() || "";
+                const education = doctor.education?.toLowerCase() || "";
+                const aboutMe = doctor.aboutMe?.toLowerCase() || "";
+                const fullName = doctor.user?.fullName?.toLowerCase() || "";
+                const email = doctor.user?.email?.toLowerCase() || "";
+                const availableTimes = doctor.availableTimes?.map(time => time.toLowerCase()) || [];
+
+                const matchedSearch = search
+                    ? specialization.includes(search) ||
+                    education.includes(search) ||
+                    aboutMe.includes(search) ||
+                    fullName.includes(search) ||
+                    email.includes(search) ||
+                    availableTimes.some(time => time.includes(search))
+                    : true;
+
+                    const matchedWeeks = weeks
+                    ? availableTimes.some(time => weeks.some(week => time.includes(week)))
+                    : true;
+
+                return matchedSearch && matchedWeeks;
+            })
+
             //sort doctors based on average rating
-            const sortedDoctors = await this.modifyDoctors(doctors)
+            const sortedDoctors = await this.modifyDoctors(filteredDoctors)
 
-            let filteredDoctors: any[] = []
+            const totalItems = sortedDoctors.length
 
-            if (weeks) {
-                filteredDoctors = sortedDoctors.filter(doctor => {
-
-                    const doctorAvailableTimes = doctor.availableTimes
-
-                    return doctorAvailableTimes.some((time: string) => {
-                        return weeks.some((week: string) => time.toLowerCase().includes(week.toLowerCase()))
-                    })
-                })
-            }
-
-            const totalPages = Math.ceil(count / (limit as number))
+            const paginatedDoctors = sortedDoctors.slice(skip, skip + limit)    
 
             return {
-                data: filteredDoctors.length ? filteredDoctors : sortedDoctors,
+                data: paginatedDoctors,
                 pagination: {
-                    totalItems: count,
-                    totalPages: totalPages,
+                    totalItems,
+                    totalPages: Math.ceil(totalItems / limit),
                     currentPage: page,
                     itemsPerPage: limit
                 },

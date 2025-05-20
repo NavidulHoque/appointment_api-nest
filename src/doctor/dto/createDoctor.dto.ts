@@ -1,13 +1,16 @@
-import { IsString, IsNumber, Min, MinLength, IsArray, ArrayNotEmpty } from 'class-validator';
+import { IsString, IsNumber, Min, MinLength, IsArray, ArrayNotEmpty, IsNotEmpty } from 'class-validator';
 
 export class CreateDoctorDto {
     @IsString()
+    @IsNotEmpty()
     userId: string;
 
     @IsString()
+    @IsNotEmpty()
     specialization: string;
 
     @IsString()
+    @IsNotEmpty()
     @MinLength(5, { message: 'Education must be at least 5 characters long' })
     education: string;
 

@@ -5,43 +5,35 @@ export class GetDoctorsDto {
     @Type(() => Number)
     @IsInt()
     @Min(1, { message: 'Page must be at least 1' })
-    @IsOptional()
-    page?: number;
+    page: number;
 
     @Type(() => Number)
     @IsInt()
     @Max(10, { message: 'Limit must be at most 10' })
-    @IsOptional()
-    limit?: number;
+    limit: number;
 
     @IsOptional()
     @IsString()
     specialization?: string;
 
     @IsOptional()
-    @Transform(({ value }) =>
-        typeof value === 'string' ? value.split('').map(Number) : value
-    )
-    experience?: number[];
+    @Transform(({ value }) => typeof value === 'string' ? [] : value.map(Number))
+    experience?: number[] | [];
 
     @IsOptional()
-    @Transform(({ value }) =>
-        typeof value === 'string' ? value.split('').map(Number) : value
-    )
-    fees?: number[];
+    @Transform(({ value }) => typeof value === 'string' ? [] : value.map(Number))
+    fees?: number[] | [];
 
     @IsOptional()
-    @Transform(({ value }) =>
-        typeof value === 'string' ? value.split('&') : value
-    )
+    @Transform(({ value }) => typeof value === 'string' ? [value] : value)
     weeks?: string[];
 
-    @Type(() => Boolean)
-    @IsBoolean()
     @IsOptional()
+    @Transform(({ value }) => value === 'true' ? true : false)
     isActive?: boolean;
 
     @IsOptional()
     @IsString()
+    @Transform(({ value }) => value?.toLowerCase())
     search?: string;
 }

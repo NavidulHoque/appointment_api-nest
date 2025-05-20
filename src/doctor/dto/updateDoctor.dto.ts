@@ -1,34 +1,34 @@
 import { IsString, IsNumber, Min, MinLength, IsArray, ArrayNotEmpty, IsOptional, IsBoolean } from 'class-validator';
 
 export class UpdateDoctorDto {
-    @IsString()
     @IsOptional()
+    @IsString()
     specialization?: string;
 
+    @IsOptional()
     @IsString()
     @MinLength(5, { message: 'Education must be at least 5 characters long' })
-    @IsOptional()
     education?: string;
 
+    @IsOptional()
     @IsNumber()
     @Min(1, { message: 'Experience must be at least 1 year' })
-    @IsOptional()
     experience?: number;
 
+    @IsOptional()
     @IsString()
     @MinLength(10, { message: 'About me must be at least 10 characters long' })
-    @IsOptional()
     aboutMe?: string;
 
+    @IsOptional()
     @IsNumber()
     @Min(20, { message: 'Fees must be at least 20' })
-    @IsOptional()
     fees?: number;
 
+    @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
     @IsString({ each: true })
-    @IsOptional()
     availableTimes?: string[];
 
     @IsOptional()

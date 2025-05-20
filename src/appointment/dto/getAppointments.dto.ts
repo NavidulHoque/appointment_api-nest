@@ -5,44 +5,44 @@ import { Method, Status } from '@prisma/client';
 
 export class GetAppointmentsDto {
 
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1, { message: 'Page must be at least 1' })
-  @IsOptional()
   page?: number;
 
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Max(10, { message: 'Limit must be at most 10' })
-  @IsOptional()
   limit?: number;
 
   @IsOptional()
   @IsString()
   search?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   doctorId?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   patientId?: string;
   
+  @IsOptional()
   @IsString()
   @Transform(({ value }) => value?.toUpperCase())
   @IsEnum(Status, { message: 'Status must be pending, completed, running or cancelled' })
-  @IsOptional()
   status?: Status;
 
+  @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
-  @IsOptional()
   isPaid?: boolean;
 
+  @IsOptional()
   @IsString()
   @Transform(({ value }) => value?.toUpperCase())
   @IsEnum(Method, { message: 'Payment method must be cash or online' })
-  @IsOptional()
   paymentMethod?: string;
 }

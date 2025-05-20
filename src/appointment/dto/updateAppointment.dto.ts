@@ -3,26 +3,26 @@ import { Type } from "class-transformer";
 import { IsBoolean, IsDate, IsEnum, IsOptional, IsString } from "class-validator";
 
 export class UpdateAppointmentDto {
-    @IsString()
     @IsOptional()
+    @IsString()
     doctorId?: string;
 
+    @IsOptional()
     @Type(() => Date)
     @IsDate({ message: 'Date must be a valid date' })
-    @IsOptional()
     date?: Date;
 
+    @IsOptional()
     @IsString()
     @IsEnum(Status, { message: 'Status must be pending, completed, running or cancelled' })
-    @IsOptional()
     status?: Status;
-
-    @IsBoolean()
+    
     @IsOptional()
+    @IsBoolean()
     isPaid?: boolean;
 
+    @IsOptional()
     @IsString()
     @IsEnum(Method, { message: 'Payment method must be cash or online' })
-    @IsOptional()
     paymentMethod?: Method;
 }

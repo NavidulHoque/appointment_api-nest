@@ -77,7 +77,6 @@ model Appointment {
   status          Status     @default(PENDING)
   isPaid          Boolean    @default(false)
   paymentMethod   Method?  
-  isCompleted     Boolean    @default(false)
 }
 
 enum Status{

@@ -1,13 +1,10 @@
 import { Body, Controller, Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard';
 import { DoctorService } from './doctor.service';
-import { DoctorDto } from './dto';
+import { CreateDoctorDto, GetDoctorsDto } from './dto';
 import { CheckRoleService } from 'src/common/checkRole.service';
 import { User } from 'src/user/decorator';
-import { AuthUser } from 'src/auth/interface';
 import { UserDto } from 'src/user/dto';
-import { ParseNumberArrayPipe } from 'src/common/pipes/parse-number-array.pipe';
-import { OptionalParseBoolPipe } from 'src/common/pipes/optional-parse-bool.pipe';
 
 @UseGuards(AuthGuard)
 @Controller('doctors')
@@ -20,7 +17,7 @@ export class DoctorController {
 
     @Post("/create-doctor")
     createDoctor(
-        @Body() dto: DoctorDto, 
+        @Body() dto: CreateDoctorDto,
         @User() user: UserDto
     ) {
         this.checkRoleService.checkIsAdmin(user.role)
@@ -30,46 +27,20 @@ export class DoctorController {
     @Get("/get-all-doctors")
     getAllDoctors(
         @User() user: UserDto,
-        @Query('page', ParseIntPipe) page: number,
-        @Query('limit', ParseIntPipe) limit: number,
-        @Query('specialization') specialization: string,
-
-        @Query('experience', ParseNumberArrayPipe)
-        experience: number[],
-
-        @Query('fees', ParseNumberArrayPipe)
-        fees: number[],
-
-        @Query('weeks', new ParseArrayPipe({ items: String, separator: '&', optional: true }))
-        weeks: string[],
-
-        @Query('isActive', OptionalParseBoolPipe)
-        isActive: boolean,
-
-        @Query('search') search: string,
+        @Query() query: GetDoctorsDto
     ) {
         this.checkRoleService.checkIsAdminOrPatient(user.role)
-        return this.doctorService.getAllDoctors(
-            page, 
-            limit, 
-            specialization, 
-            experience, 
-            weeks, 
-            fees, 
-            isActive, 
-            search
-        )
+        return this.doctorService.getAllDoctors(query)
     }
 
     @Get("/get-a-doctor/:id")
     getADoctor(
         @Param('id') id: string,
         @User() user: UserDto,
-        @Query('page', ParseIntPipe) page: number,
-        @Query('limit', ParseIntPipe) limit: number,
+        @Query() query: GetDoctorsDto,
     ) {
         this.checkRoleService.checkIsAdminOrPatient(user.role)
-        return this.doctorService.getADoctor(id, page, limit)
+        return this.doctorService.getADoctor(id, query)
     }
 
     @Get("/get-total-revenue")
@@ -82,8 +53,8 @@ export class DoctorController {
 
     @Patch("/update-doctor")
     updateDoctor(
-        @Body() body: any, 
-        @Param('id') id: string, 
+        @Body() body: any,
+        @Param('id') id: string,
         @User() user: UserDto
     ) {
         this.checkRoleService.checkIsDoctor(user.role)
@@ -92,8 +63,8 @@ export class DoctorController {
 
     @Patch("/update-add-available-times/:id")
     addAvailableTime(
-        @Body('availableTime') availableTime: string, 
-        @Param('id') id: string, 
+        @Body('availableTime') availableTime: string,
+        @Param('id') id: string,
         @User() user: UserDto
     ) {
         this.checkRoleService.checkIsAdmin(user.role)
@@ -102,8 +73,8 @@ export class DoctorController {
 
     @Patch("/update-remove-available-times/:id")
     removeAvailableTime(
-        @Body('availableTime') availableTime: string, 
-        @Param('id') id: string, 
+        @Body('availableTime') availableTime: string,
+        @Param('id') id: string,
         @User() user: UserDto
     ) {
         this.checkRoleService.checkIsAdmin(user.role)
@@ -113,7 +84,7 @@ export class DoctorController {
 
     @Patch("/update-make-doctor-active/:id")
     makeDoctorActive(
-        @Param('id') id: string, 
+        @Param('id') id: string,
         @User() user: UserDto
     ) {
         this.checkRoleService.checkIsAdminOrDoctor(user.role)
@@ -122,7 +93,7 @@ export class DoctorController {
 
     @Patch("/update-make-doctor-inactive/:id")
     makeDoctorInActive(
-        @Param('id') id: string, 
+        @Param('id') id: string,
         @User() user: UserDto
     ) {
         this.checkRoleService.checkIsAdminOrDoctor(user.role)
@@ -131,8 +102,8 @@ export class DoctorController {
 
     @Delete("/delete-doctor/:id")
     deleteDoctor(
-        @Param('id') id: string, 
-        @User() user: AuthUser
+        @Param('id') id: string,
+        @User() user: UserDto
     ) {
         this.checkRoleService.checkIsAdminOrDoctor(user.role)
         return this.doctorService.deleteDoctor(id)

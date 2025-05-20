@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { AppointmentDto } from './dto';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateAppointmentDto, GetAppointmentsDto, UpdateAppointmentDto } from './dto';
 
 @Injectable()
 export class AppointmentService {
@@ -11,18 +11,29 @@ export class AppointmentService {
         private handleErrorsService: HandleErrorsService
     ) { }
 
-    //admin dashboard
-    async getAllAppointments(
-        page: number,
-        limit: number,
-        search: string,
-        doctorId: string,
-        patientId: string,
-        status: string,
-        isPaid: boolean,
-        paymentMethod: string,
-        isCompleted: boolean,
-    ) {
+    async createAppointment(dto: CreateAppointmentDto) {
+
+        const { patientId, doctorId, date } = dto
+
+        try {
+
+            const appointment = await this.prisma.appointment.create({ data: { patientId, doctorId, date } })
+
+            return {
+                appointment,
+                message: "Appointment created successfully"
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
+
+    }
+
+    async getAllAppointments(queryParam: GetAppointmentsDto) {
+        const { page = 1, limit = 10, search, doctorId, patientId, status, isPaid, paymentMethod } = queryParam
+
         const skip = (page - 1) * limit;
         let orderBy: any = { createdAt: 'desc' }
 
@@ -45,8 +56,6 @@ export class AppointmentService {
         if (isPaid) query.isPaid = isPaid
 
         if (paymentMethod) query.paymentMethod = { status: { contains: paymentMethod, mode: 'insensitive' } }
-
-        if (isCompleted) query.isCompleted = isCompleted
 
         if (search) {
             query.OR = [
@@ -75,9 +84,7 @@ export class AppointmentService {
             const [appointments, totalAppointments] = await this.prisma.$transaction([
                 this.prisma.appointment.findMany({
                     where: query,
-                    orderBy: {
-                        date: 'asc',
-                    },
+                    orderBy,
                     select: {
                         doctor: {
                             select: {
@@ -122,66 +129,57 @@ export class AppointmentService {
         }
     }
 
-    async getTotalAppointmentCount() {
+    async getAllAppointmentCount(queryParam: GetAppointmentsDto) {
+
+        const { doctorId, patientId } = queryParam
+
+        const query: any = doctorId ? { doctorId } : {}
+
+        if (patientId) query.patientId = patientId
 
         try {
-            const totalAppointments = await this.prisma.appointment.count()
+            const [
+                totalAppointments,
+                totalPendingAppointments,
+                totalRunningAppointments,
+                totalCompletedAppointments,
+                totalCancelledAppointments,
+                totalPaidAppointments,
+                totalUnPaidAppointments,
+                totalCashPaidAppointments,
+                totalOnlinePaidAppointments
+            ] = await this.prisma.$transaction([
+
+                this.prisma.appointment.count({ where: { ...query } }),
+                this.prisma.appointment.count({ where: { ...query, status: 'PENDING' } }),
+                this.prisma.appointment.count({ where: { ...query, status: 'RUNNING' } }),
+                this.prisma.appointment.count({ where: { ...query, status: 'COMPLETED' } }),
+                this.prisma.appointment.count({ where: { ...query, status: 'CANCELLED' } }),
+                this.prisma.appointment.count({ where: { ...query, isPaid: true } }),
+                this.prisma.appointment.count({ where: { ...query, isPaid: false } }),
+                this.prisma.appointment.count({ where: { ...query, paymentMethod: 'CASH' } }),
+                this.prisma.appointment.count({ where: { ...query, paymentMethod: 'ONLINE' } }),
+            ])
 
             return {
-                data: totalAppointments
+                data: {
+                    totalAppointments,
+                    totalPendingAppointments,
+                    totalRunningAppointments,
+                    totalCompletedAppointments,
+                    totalCancelledAppointments,
+                    totalPaidAppointments,
+                    totalUnPaidAppointments,
+                    totalCashPaidAppointments,
+                    totalOnlinePaidAppointments
+                },
+                message: "Appointments count fetched successfully"
             }
         }
 
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
-    }
-
-    async getTotalAppointmentsGraph() {
-
-    }
-
-    //patient dashboard
-    async getAppointmentsGraphOfPatient() {
-
-    }
-
-    //doctor dashboard
-    async getTotalAppointmentsCountOfDoctor() {
-
-    }
-
-    async getAllAppointmentsTodayOfDoctor() {
-
-    }
-
-    async getAppointmentsGraphOfDoctor() {
-
-    }
-
-    //both
-    async createAppointment(dto: AppointmentDto) {
-
-        const { patientId, doctorId, date } = dto
-
-        try {
-
-            const appointment = await this.prisma.appointment.create({ data: { patientId, doctorId, date } })
-
-            return {
-                appointment,
-                message: "Appointment created successfully"
-            }
-        }
-
-        catch (error) {
-            this.handleErrorsService.handleError(error)
-        }
-
-    }
-
-    getAllPatients() {
-
     }
 
     async getAnAppointment(id: string) {
@@ -205,13 +203,51 @@ export class AppointmentService {
 
     }
 
-    async updateAppointment(dto: AppointmentDto, id: string) {
+    async getTotalAppointmentsGraph(queryParam: GetAppointmentsDto) {
 
-        const { patientId, doctorId, date } = dto
+        const { doctorId, patientId } = queryParam
+
+        const conditions = doctorId ? `"doctorId" = ${doctorId}` : patientId ? `"patientId" = ${patientId}` : ""
+
+        const whereClause = conditions ? `WHERE ${conditions}` : '';
+
+        const query = `
+             SELECT 
+               EXTRACT(YEAR FROM "date") AS year,
+               EXTRACT(MONTH FROM "date") AS month,
+               COUNT(*) AS total
+             FROM "Appointment"
+             ${whereClause}
+             GROUP BY year, month
+             ORDER BY year, month;
+             `;
+
+        try {
+            const result = await this.prisma.$queryRaw`${query}`
+
+            return {
+                data: result,
+                message: "Appointments graph fetched successfully"
+            }
+        }
+
+        catch (error) {
+            this.handleErrorsService.handleError(error)
+        }
+
+    }
+
+    async getAllAppointmentsTodayOfDoctor() {
+
+    }
+
+    async updateAppointment(dto: UpdateAppointmentDto, id: string) {
+
+        const { doctorId, date } = dto
 
         try {
 
-            const appointment = await this.prisma.appointment.update({ where: { id }, data: { patientId, doctorId, date } })
+            const appointment = await this.prisma.appointment.update({ where: { id }, data: { doctorId, date } })
 
             if (!appointment) {
                 this.handleErrorsService.throwNotFoundError("Appointment not found")

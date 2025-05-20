@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { DoctorDto } from './dto';
+import { Injectable, NotFoundException, Get } from '@nestjs/common';
+import { CreateDoctorDto, GetDoctorsDto, UpdateDoctorDto } from './dto';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { doctorSelect } from 'src/prisma/prisma-selects';
@@ -13,7 +13,7 @@ export class DoctorService {
         private handleErrorsService: HandleErrorsService
     ) { }
 
-    async createDoctor(dto: DoctorDto) {
+    async createDoctor(dto: CreateDoctorDto) {
 
         const { userId, specialization, education, experience, aboutMe, fees, availableTimes } = dto
 
@@ -43,16 +43,9 @@ export class DoctorService {
         }
     }
 
-    async getAllDoctors(
-        page: number,
-        limit: number,
-        specialization: string,
-        experience: number[],
-        weeks: string[],
-        fees: number[],
-        isActive: boolean,
-        search: string
-    ) {
+    async getAllDoctors(queryParams: GetDoctorsDto) {
+
+        const { page, limit, search, specialization, experience, fees, weeks, isActive } = queryParams
 
         const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {} // will filter case-insensitive
 
@@ -88,7 +81,7 @@ export class DoctorService {
             const [doctors, count] = await this.prisma.$transaction([
                 this.prisma.doctor.findMany({
                     where: query,
-                    skip: (page - 1) * limit,
+                    skip: (page as number - 1) * (limit as number),
                     take: limit,
                     select: doctorSelect,
                 }),
@@ -114,7 +107,7 @@ export class DoctorService {
                 })
             }
 
-            const totalPages = Math.ceil(count / limit)
+            const totalPages = Math.ceil(count / (limit as number))
 
             return {
                 data: filteredDoctors.length ? filteredDoctors : sortedDoctors,
@@ -133,9 +126,11 @@ export class DoctorService {
         }
     }
 
-    async getADoctor(id: string, page: number, limit: number) {
+    async getADoctor(id: string, queryParams: GetDoctorsDto) {
 
-        const skip = (page - 1) * limit
+        const { page, limit } = queryParams
+
+        const skip = (page as number - 1) * (limit as number)
 
         try {
             const fetchedDoctor = await this.prisma.doctor.findUnique({
@@ -201,7 +196,7 @@ export class DoctorService {
                 },
                 pagination: {
                     totalItems: totalReviews,
-                    totalPages: Math.ceil(totalReviews / limit),
+                    totalPages: Math.ceil(totalReviews / (limit as number)),
                     currentPage: page,
                     itemsPerPage: limit
                 },
@@ -270,7 +265,7 @@ export class DoctorService {
         }
     }
 
-    async updateDoctor(dto: DoctorDto, id: string) {
+    async updateDoctor(dto: UpdateDoctorDto, id: string) {
 
         const { specialization, education, experience, aboutMe, fees, availableTimes } = dto
 

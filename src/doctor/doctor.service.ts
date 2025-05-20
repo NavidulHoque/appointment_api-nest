@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { DoctorDto } from './dto';
+import { Injectable, NotFoundException, Get } from '@nestjs/common';
+import { CreateDoctorDto, GetDoctorsDto, UpdateDoctorDto } from './dto';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { doctorSelect } from 'src/prisma/prisma-selects';
@@ -13,7 +13,7 @@ export class DoctorService {
         private handleErrorsService: HandleErrorsService
     ) { }
 
-    async createDoctor(dto: DoctorDto) {
+    async createDoctor(dto: CreateDoctorDto) {
 
         const { userId, specialization, education, experience, aboutMe, fees, availableTimes } = dto
 
@@ -43,16 +43,11 @@ export class DoctorService {
         }
     }
 
-    async getAllDoctors(
-        page: number,
-        limit: number,
-        specialization: string,
-        experience: number[],
-        weeks: string[],
-        fees: number[],
-        isActive: boolean,
-        search: string
-    ) {
+    async getAllDoctors(queryParams: GetDoctorsDto) {
+
+        const { page, limit, search, specialization, experience, fees, weeks, isActive } = queryParams
+
+        const skip = (page - 1) * limit
 
         const query: any = specialization ? { specialization: { contains: specialization, mode: 'insensitive' as const } } : {} // will filter case-insensitive
 
@@ -66,61 +61,53 @@ export class DoctorService {
             query['fees'] = { gte: min, lte: max };
         }
 
-        if (isActive) query['isActive'] = isActive
-
-        if (search) {
-            query.OR = [
-                { specialization: { contains: search, mode: 'insensitive' } },
-                { education: { contains: search, mode: 'insensitive' } },
-                { aboutMe: { contains: search, mode: 'insensitive' } },
-                {
-                    user: {
-                        OR: [
-                            { fullName: { contains: search, mode: 'insensitive' } },
-                            { email: { contains: search, mode: 'insensitive' } }
-                        ]
-                    }
-                }
-            ];
-        }
+        if (isActive !== undefined) query['isActive'] = isActive
 
         try {
-            const [doctors, count] = await this.prisma.$transaction([
-                this.prisma.doctor.findMany({
-                    where: query,
-                    skip: (page - 1) * limit,
-                    take: limit,
-                    select: doctorSelect,
-                }),
-
-                this.prisma.doctor.count({ where: query }),
-            ])
+            const doctors = await this.prisma.doctor.findMany({
+                where: query,
+                select: doctorSelect,
+            })
 
             if (!doctors) this.handleErrorsService.throwNotFoundError("Doctors not found")
 
+            let filteredDoctors = doctors.filter((doctor) => {
+
+                const specialization = doctor.specialization?.toLowerCase() || "";
+                const education = doctor.education?.toLowerCase() || "";
+                const aboutMe = doctor.aboutMe?.toLowerCase() || "";
+                const fullName = doctor.user?.fullName?.toLowerCase() || "";
+                const email = doctor.user?.email?.toLowerCase() || "";
+                const availableTimes = doctor.availableTimes?.map(time => time.toLowerCase()) || [];
+
+                const matchedSearch = search
+                    ? specialization.includes(search) ||
+                    education.includes(search) ||
+                    aboutMe.includes(search) ||
+                    fullName.includes(search) ||
+                    email.includes(search) ||
+                    availableTimes.some(time => time.includes(search))
+                    : true;
+
+                    const matchedWeeks = weeks
+                    ? availableTimes.some(time => weeks.some(week => time.includes(week)))
+                    : true;
+
+                return matchedSearch && matchedWeeks;
+            })
+
             //sort doctors based on average rating
-            const sortedDoctors = await this.modifyDoctors(doctors)
+            const sortedDoctors = await this.modifyDoctors(filteredDoctors)
 
-            let filteredDoctors: any[] = []
+            const totalItems = sortedDoctors.length
 
-            if (weeks) {
-                filteredDoctors = sortedDoctors.filter(doctor => {
-
-                    const doctorAvailableTimes = doctor.availableTimes
-
-                    return doctorAvailableTimes.some((time: string) => {
-                        return weeks.some((week: string) => time.toLowerCase().includes(week.toLowerCase()))
-                    })
-                })
-            }
-
-            const totalPages = Math.ceil(count / limit)
+            const paginatedDoctors = sortedDoctors.slice(skip, skip + limit)    
 
             return {
-                data: filteredDoctors.length ? filteredDoctors : sortedDoctors,
+                data: paginatedDoctors,
                 pagination: {
-                    totalItems: count,
-                    totalPages: totalPages,
+                    totalItems,
+                    totalPages: Math.ceil(totalItems / limit),
                     currentPage: page,
                     itemsPerPage: limit
                 },
@@ -133,9 +120,11 @@ export class DoctorService {
         }
     }
 
-    async getADoctor(id: string, page: number, limit: number) {
+    async getADoctor(id: string, queryParams: GetDoctorsDto) {
 
-        const skip = (page - 1) * limit
+        const { page, limit } = queryParams
+
+        const skip = (page as number - 1) * (limit as number)
 
         try {
             const fetchedDoctor = await this.prisma.doctor.findUnique({
@@ -201,7 +190,7 @@ export class DoctorService {
                 },
                 pagination: {
                     totalItems: totalReviews,
-                    totalPages: Math.ceil(totalReviews / limit),
+                    totalPages: Math.ceil(totalReviews / (limit as number)),
                     currentPage: page,
                     itemsPerPage: limit
                 },
@@ -270,7 +259,7 @@ export class DoctorService {
         }
     }
 
-    async updateDoctor(dto: DoctorDto, id: string) {
+    async updateDoctor(dto: UpdateDoctorDto, id: string) {
 
         const { specialization, education, experience, aboutMe, fees, availableTimes } = dto
 

@@ -1,22 +1,16 @@
-import {
-    IsString,
-    IsNumber,
-    IsBoolean,
-    IsOptional,
-    Min,
-    MinLength,
-    Matches,
-    IsArray,
-    ArrayNotEmpty,
-} from 'class-validator';
+import { IsString, IsNumber, Min, MinLength, IsArray, ArrayNotEmpty, IsNotEmpty } from 'class-validator';
 
-export class DoctorDto {
+export class CreateDoctorDto {
     @IsString()
+    @IsNotEmpty()
     userId: string;
 
     @IsString()
+    @IsNotEmpty()
     specialization: string;
 
+    @IsString()
+    @IsNotEmpty()
     @MinLength(5, { message: 'Education must be at least 5 characters long' })
     education: string;
 
@@ -24,6 +18,7 @@ export class DoctorDto {
     @Min(1, { message: 'Experience must be at least 1 year' })
     experience: number;
 
+    @IsString()
     @MinLength(10, { message: 'About me must be at least 10 characters long' })
     aboutMe: string;
 
@@ -35,8 +30,4 @@ export class DoctorDto {
     @ArrayNotEmpty()
     @IsString({ each: true })
     availableTimes: string[];
-
-    @IsOptional()
-    @IsBoolean()
-    isActive?: boolean;
 }

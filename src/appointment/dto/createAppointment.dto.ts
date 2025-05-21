@@ -1,11 +1,13 @@
 import { Type } from "class-transformer";
-import { IsDate, IsString } from "class-validator";
+import { IsDate, IsNotEmpty, IsString } from "class-validator";
 
 export class CreateAppointmentDto {
   @IsString()
+  @IsNotEmpty()
   patientId: string;
 
   @IsString()
+  @IsNotEmpty()
   doctorId: string;
 
   @Type(() => Date)

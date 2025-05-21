@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAppointmentDto, GetAppointmentsDto, UpdateAppointmentDto } from './dto';
+import { endOfDay, startOfDay } from 'date-fns';
 
 @Injectable()
 export class AppointmentService {
@@ -15,7 +16,27 @@ export class AppointmentService {
 
         const { patientId, doctorId, date } = dto
 
+        if (patientId === doctorId) {
+            this.handleErrorsService.throwBadRequestError("Patient and doctor cannot be the same")
+        }
+
+        if (date.getTime() < Date.now()) {
+            this.handleErrorsService.throwBadRequestError("Date must be in the future")
+        }
+
+        const minDate = (date.getTime() - 15 * 60 * 1000) // 15 min before
+        const maxDate = (date.getTime() + 15 * 60 * 1000) // 15 min after
+
         try {
+            const conflictingAppointment = await this.prisma.appointment.findFirst({
+                where: {
+                    OR: [{ patientId, doctorId }],
+                    date: {
+                        gte: new Date(minDate),
+                        lte: new Date(maxDate)
+                    }
+                }
+            })
 
             const appointment = await this.prisma.appointment.create({ data: { patientId, doctorId, date } })
 
@@ -28,11 +49,10 @@ export class AppointmentService {
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
-
     }
 
     async getAllAppointments(queryParam: GetAppointmentsDto) {
-        const { page = 1, limit = 10, search, doctorId, patientId, status, isPaid, paymentMethod } = queryParam
+        const { page = 1, limit = 10, search, doctorId, patientId, status, isPaid, paymentMethod, isToday } = queryParam
 
         const skip = (page - 1) * limit;
         let orderBy: any = { createdAt: 'desc' }
@@ -53,9 +73,17 @@ export class AppointmentService {
             }
         }
 
-        if (isPaid) query.isPaid = isPaid
+        if (isPaid !== undefined) query.isPaid = isPaid
 
         if (paymentMethod) query.paymentMethod = { status: { contains: paymentMethod, mode: 'insensitive' } }
+
+        if (isToday) {
+            const now = new Date()
+            query.date = {
+                gte: startOfDay(now),
+                lte: endOfDay(now)
+            }
+        }
 
         if (search) {
             query.OR = [
@@ -234,10 +262,6 @@ export class AppointmentService {
         catch (error) {
             this.handleErrorsService.handleError(error)
         }
-
-    }
-
-    async getAllAppointmentsTodayOfDoctor() {
 
     }
 

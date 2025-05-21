@@ -61,6 +61,7 @@ export class DoctorService {
             query['fees'] = { gte: min, lte: max };
         }
 
+        console.log(isActive);
         if (isActive !== undefined) query['isActive'] = isActive
 
         try {
@@ -124,7 +125,7 @@ export class DoctorService {
 
         const { page, limit } = queryParams
 
-        const skip = (page as number - 1) * (limit as number)
+        const skip = (page - 1) * limit
 
         try {
             const fetchedDoctor = await this.prisma.doctor.findUnique({
@@ -190,7 +191,7 @@ export class DoctorService {
                 },
                 pagination: {
                     totalItems: totalReviews,
-                    totalPages: Math.ceil(totalReviews / (limit as number)),
+                    totalPages: Math.ceil(totalReviews / limit),
                     currentPage: page,
                     itemsPerPage: limit
                 },

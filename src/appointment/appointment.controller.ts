@@ -60,12 +60,6 @@ export class AppointmentController {
         return this.appointmentService.getTotalAppointmentsGraph(query)
     }
 
-    @Get("/get-all-appointments-today-doctor")
-    getAllAppointmentsTodayOfDoctor(@User() user: UserDto) {
-        this.checkRoleService.checkIsDoctor(user.role)
-        return this.appointmentService.getAllAppointmentsTodayOfDoctor()
-    }
-
     @Put("/update-appointment/:id")
     updateAppointment(
         @Body() dto: UpdateAppointmentDto, 

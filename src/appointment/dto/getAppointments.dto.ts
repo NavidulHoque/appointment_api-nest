@@ -28,7 +28,7 @@ export class GetAppointmentsDto {
   @IsOptional()
   @IsString()
   patientId?: string;
-  
+
   @IsOptional()
   @IsString()
   @Transform(({ value }) => value?.toUpperCase())
@@ -36,8 +36,10 @@ export class GetAppointmentsDto {
   status?: Status;
 
   @IsOptional()
-  @Type(() => Boolean)
-  @IsBoolean()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+  })
   isPaid?: boolean;
 
   @IsOptional()
@@ -45,4 +47,8 @@ export class GetAppointmentsDto {
   @Transform(({ value }) => value?.toUpperCase())
   @IsEnum(Method, { message: 'Payment method must be cash or online' })
   paymentMethod?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  isToday?: boolean
 }

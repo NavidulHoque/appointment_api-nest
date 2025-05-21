@@ -29,7 +29,10 @@ export class GetDoctorsDto {
     weeks?: string[];
 
     @IsOptional()
-    @Transform(({ value }) => value === 'true' ? true : false)
+    @Transform(({ value }) => {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+    })
     isActive?: boolean;
 
     @IsOptional()

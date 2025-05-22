@@ -52,7 +52,7 @@ export class AppointmentService {
     }
 
     async getAllAppointments(queryParam: GetAppointmentsDto) {
-        const { page = 1, limit = 10, search, doctorId, patientId, status, isPaid, paymentMethod, isToday } = queryParam
+        const { page = 1, limit = 10, search, doctorId, patientId, status, isPaid, paymentMethod, isToday, isPast, isFuture } = queryParam
 
         const skip = (page - 1) * limit;
         let orderBy: any = { createdAt: 'desc' }
@@ -82,6 +82,20 @@ export class AppointmentService {
             query.date = {
                 gte: startOfDay(now),
                 lte: endOfDay(now)
+            }
+        }
+
+        if (isPast) {
+            const now = new Date()
+            query.date = {
+                lte: now
+            }
+        }
+
+        if (isFuture) {
+            const now = new Date()
+            query.date = {
+                gte: now
             }
         }
 
@@ -167,7 +181,7 @@ export class AppointmentService {
 
         try {
             const [
-                totalAppointments,
+                totalAppointments, 
                 totalPendingAppointments,
                 totalRunningAppointments,
                 totalCompletedAppointments,

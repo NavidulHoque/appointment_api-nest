@@ -50,4 +50,12 @@ export class GetAppointmentsDto {
   @IsOptional()
   @Transform(({ value }) => value === 'true')
   isToday?: boolean
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  isPast?: boolean
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true')
+  isFuture?: boolean
 }

@@ -1,5 +1,4 @@
-// filter-appointments.dto.ts
-import { IsEnum, IsOptional, IsBoolean, IsInt, Min, Max, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsInt, Min, Max, IsString } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { Method, Status } from '@prisma/client';
 

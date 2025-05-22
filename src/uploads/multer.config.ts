@@ -1,4 +1,5 @@
-// src/uploads/multer.config.ts
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -46,15 +47,21 @@ const fileFilter = (
   else cb(new Error(`Only ${filetypes.toString()} files are allowed!`));
 };
 
-export const upload: multer.Multer = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 1024 * 1024 * 500, // 500MB
-  },
-});
 
-export const uploadFields = upload.fields([
+export const multerOptions = {
+  storage: diskStorage({
+    destination: './uploads',
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+    },
+  }),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+  },
+};
+
+export const uploadFields = multer(multerOptions).fields([
   { name: 'video', maxCount: 1 },
   { name: 'image', maxCount: 1 },
 ]);

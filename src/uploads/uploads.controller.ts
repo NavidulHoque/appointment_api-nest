@@ -7,18 +7,21 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { upload } from './multer.config';
+import { AnyFilesInterceptor, FileFieldsInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from './multer.config';
 import { CloudinaryService } from './cloudinary.service';
 import path from 'path';
 import { UploadApiResponse } from 'cloudinary';
 
 @Controller('upload')
 export class UploadsController {
-  constructor(private readonly cloudinaryService: CloudinaryService) {}
+  constructor(private readonly cloudinaryService: CloudinaryService) { }
 
   @Post()
-  @UseInterceptors(AnyFilesInterceptor(upload))
+  @UseInterceptors(AnyFilesInterceptor(multerOptions)) // For all files
+  // OR
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'video' }, { name: 'image' }], multerOptions))
+
   async handleUpload(
     @UploadedFiles() files: Express.Multer.File[],
     @Res() res: Response,

@@ -24,19 +24,15 @@ export class AppointmentService {
             this.handleErrorsService.throwBadRequestError("Date must be in the future")
         }
 
-        const minDate = (date.getTime() - 15 * 60 * 1000) // 15 min before
-        const maxDate = (date.getTime() + 15 * 60 * 1000) // 15 min after
-
         try {
-            const conflictingAppointment = await this.prisma.appointment.findFirst({
+            const existingAppointment = await this.prisma.appointment.findFirst({
                 where: {
                     OR: [{ patientId, doctorId }],
-                    date: {
-                        gte: new Date(minDate),
-                        lte: new Date(maxDate)
-                    }
+                    date
                 }
             })
+
+            if (existingAppointment) this.handleErrorsService.handleError("Appointment already booked")
 
             const appointment = await this.prisma.appointment.create({ data: { patientId, doctorId, date } })
 
@@ -181,7 +177,7 @@ export class AppointmentService {
 
         try {
             const [
-                totalAppointments, 
+                totalAppointments,
                 totalPendingAppointments,
                 totalRunningAppointments,
                 totalCompletedAppointments,

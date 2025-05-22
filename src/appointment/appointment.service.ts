@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAppointmentDto, GetAppointmentsDto, UpdateAppointmentDto } from './dto';
-import { endOfDay, startOfDay } from 'date-fns';
 
 @Injectable()
 export class AppointmentService {
@@ -27,17 +26,32 @@ export class AppointmentService {
         try {
             const existingAppointment = await this.prisma.appointment.findFirst({
                 where: {
-                    OR: [{ patientId, doctorId }],
-                    date
+                    OR: [
+                        {
+                            patientId,
+                            date,
+                            status: {
+                                not: 'CANCELLED'
+                            }
+                        },
+                        {
+                            doctorId,
+                            date,
+                            status: {
+                                not: 'CANCELLED'
+                            }
+                        }
+                    ]
                 }
-            })
+            });
 
-            if (existingAppointment) this.handleErrorsService.handleError("Appointment already booked")
+
+            if (existingAppointment) this.handleErrorsService.throwBadRequestError("Appointment already booked")
 
             const appointment = await this.prisma.appointment.create({ data: { patientId, doctorId, date } })
 
             return {
-                appointment,
+                data: appointment,
                 message: "Appointment created successfully"
             }
         }
@@ -51,14 +65,14 @@ export class AppointmentService {
         const { page = 1, limit = 10, search, doctorId, patientId, status, isPaid, paymentMethod, isToday, isPast, isFuture } = queryParam
 
         const skip = (page - 1) * limit;
-        let orderBy: any = { createdAt: 'desc' }
+        let orderBy: any = { date: 'desc' }
 
         const query: any = doctorId ? { doctorId } : {}
 
         if (patientId) query.patientId = patientId
 
         if (status) {
-            query.status = { status: { contains: status, mode: 'insensitive' } }
+            query.status = status
 
             if (status.toLowerCase() === 'pending') {
                 orderBy = { date: 'asc' }
@@ -71,14 +85,31 @@ export class AppointmentService {
 
         if (isPaid !== undefined) query.isPaid = isPaid
 
-        if (paymentMethod) query.paymentMethod = { status: { contains: paymentMethod, mode: 'insensitive' } }
+        if (paymentMethod) query.paymentMethod = paymentMethod
 
         if (isToday) {
-            const now = new Date()
+            const now = new Date();
+
+            const start = new Date(Date.UTC( // converting to UTC time zone
+                now.getUTCFullYear(),
+                now.getUTCMonth(),
+                now.getUTCDate(),
+                0, 0, 0
+            ));
+
+            const end = new Date(Date.UTC(
+                now.getUTCFullYear(),
+                now.getUTCMonth(),
+                now.getUTCDate(),
+                23, 59, 59
+            ));
+
             query.date = {
-                gte: startOfDay(now),
-                lte: endOfDay(now)
+                gte: start,
+                lte: end
             }
+
+            //orderBy = { date: 'desc' }
         }
 
         if (isPast) {
@@ -140,9 +171,9 @@ export class AppointmentService {
                         },
                         date: true,
                         status: true,
+                        cancellationReason: true,
                         isPaid: true,
-                        paymentMethod: true,
-                        isCompleted: true,
+                        paymentMethod: true
                     },
                     take: limit,
                     skip
@@ -277,43 +308,29 @@ export class AppointmentService {
 
     async updateAppointment(dto: UpdateAppointmentDto, id: string) {
 
-        const { doctorId, date } = dto
+        const { status, isPaid, paymentMethod, cancellationReason } = dto
+
+        const data: any = status ? { status } : {}
+
+        if (status === 'CANCELLED') data.cancellationReason = cancellationReason
+
+        if (isPaid) data.isPaid = isPaid
+
+        if (paymentMethod) data.paymentMethod = paymentMethod
 
         try {
+            const appointment = await this.prisma.appointment.findUnique({ where: { id } })
 
-            const appointment = await this.prisma.appointment.update({ where: { id }, data: { doctorId, date } })
-
-            if (!appointment) {
-                this.handleErrorsService.throwNotFoundError("Appointment not found")
+            if (!appointment?.isPaid && status === 'COMPLETED') {
+                data.isPaid = true
+                data.paymentMethod = 'CASH'
             }
 
+            const updatedAppointment = await this.prisma.appointment.update({ where: { id }, data })
+
             return {
-                appointment,
+                data: updatedAppointment,
                 message: "Appointment updated successfully"
-            }
-        }
-
-        catch (error) {
-            this.handleErrorsService.handleError(error)
-        }
-
-    }
-
-    async updateAppointmentStatus() {
-
-    }
-
-    async deleteAppointment(id: string) {
-
-        try {
-            const appointment = await this.prisma.appointment.delete({ where: { id } })
-
-            if (!appointment) {
-                this.handleErrorsService.throwNotFoundError("Appointment not found")
-            }
-
-            return {
-                message: "Appointment deleted successfully"
             }
         }
 

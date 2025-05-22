@@ -30,8 +30,8 @@ export class GetAppointmentsDto {
 
   @IsOptional()
   @IsString()
-  @Transform(({ value }) => value?.toUpperCase())
-  @IsEnum(Status, { message: 'Status must be pending, completed, running or cancelled' })
+  @Transform(({ value }) => value.toUpperCase())
+  @IsEnum(Status, { message: 'Status must be pending, confirmed, completed, running or cancelled' })
   status?: Status;
 
   @IsOptional()

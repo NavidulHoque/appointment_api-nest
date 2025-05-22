@@ -60,21 +60,13 @@ export class AppointmentController {
         return this.appointmentService.getTotalAppointmentsGraph(query)
     }
 
-    @Put("/update-appointment/:id")
+    @Patch("/update-appointment/:id")
     updateAppointment(
         @Body() dto: UpdateAppointmentDto, 
-        @Param('id') id: string
+        @Param('id') id: string,
+        @User() user: UserDto
     ) {
+        this.checkRoleService.checkIsAdminOrDoctor(user.role)
         return this.appointmentService.updateAppointment(dto, id)
-    }
-
-    @Patch("/update-appointment-status/:id")
-    updateAppointmentStatus(@Body() dto: UpdateAppointmentDto, @Param('id') id: string) {
-        return this.appointmentService.updateAppointmentStatus()
-    }
-
-    @Delete("/delete-appointment/:id")
-    deleteAppointment(@Param('id') id: string) {
-        return this.appointmentService.deleteAppointment(id)
     }
 }

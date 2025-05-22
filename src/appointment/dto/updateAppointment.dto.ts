@@ -1,28 +1,25 @@
 import { Method, Status } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsBoolean, IsDate, IsEnum, IsOptional, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 
 export class UpdateAppointmentDto {
     @IsOptional()
     @IsString()
-    doctorId?: string;
-
-    @IsOptional()
-    @Type(() => Date)
-    @IsDate({ message: 'Date must be a valid date' })
-    date?: Date;
-
-    @IsOptional()
-    @IsString()
     @IsEnum(Status, { message: 'Status must be pending, completed, running or cancelled' })
+    @Transform(({ value }) => value.toUpperCase())
     status?: Status;
-    
+
     @IsOptional()
-    @IsBoolean()
+    @Transform(({ value }) => value === 'true')
     isPaid?: boolean;
 
     @IsOptional()
     @IsString()
     @IsEnum(Method, { message: 'Payment method must be cash or online' })
+    @Transform(({ value }) => value.toUpperCase())
     paymentMethod?: Method;
+
+    @IsOptional()
+    @IsString()
+    cancellationReason?: string;
 }

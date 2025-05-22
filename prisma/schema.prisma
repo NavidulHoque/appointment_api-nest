@@ -68,19 +68,21 @@ model Doctor {
 }
 
 model Appointment {
-  id              String     @id @default(uuid())
-  patient         User       @relation("patientAppointments", fields: [patientId], references: [id])
-  patientId       String
-  doctor          User       @relation("doctorAppointments", fields: [doctorId], references: [id])
-  doctorId        String
-  date            DateTime
-  status          Status     @default(PENDING)
-  isPaid          Boolean    @default(false)
-  paymentMethod   Method?  
+  id                    String     @id @default(uuid())
+  patient               User       @relation("patientAppointments", fields: [patientId], references: [id])
+  patientId             String
+  doctor                User       @relation("doctorAppointments", fields: [doctorId], references: [id])
+  doctorId              String
+  date                  DateTime
+  status                Status     @default(PENDING)
+  cancellationReason    String     @default("")
+  isPaid                Boolean    @default(false)
+  paymentMethod         Method?  
 }
 
 enum Status{
   PENDING
+  CONFIRMED
   RUNNING
   COMPLETED
   CANCELLED

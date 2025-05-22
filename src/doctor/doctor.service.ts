@@ -61,7 +61,6 @@ export class DoctorService {
             query['fees'] = { gte: min, lte: max };
         }
 
-        console.log(isActive);
         if (isActive !== undefined) query['isActive'] = isActive
 
         try {

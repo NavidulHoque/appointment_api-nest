@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAppointmentDto, GetAppointmentsDto, UpdateAppointmentDto } from './dto';
+import { appointmentSelect } from 'src/prisma/prisma-selects';
 
 @Injectable()
 export class AppointmentService {
@@ -74,12 +75,8 @@ export class AppointmentService {
         if (status) {
             query.status = status
 
-            if (status.toLowerCase() === 'pending') {
+            if (status.toLowerCase() === 'confirmed' || status.toLowerCase() === 'pending' || status.toLowerCase() === 'running') {
                 orderBy = { date: 'asc' }
-            }
-
-            else if (status.toLowerCase() === 'completed') {
-                orderBy = { date: 'desc' }
             }
         }
 
@@ -109,7 +106,7 @@ export class AppointmentService {
                 lte: end
             }
 
-            //orderBy = { date: 'desc' }
+            orderBy = { date: 'asc' }
         }
 
         if (isPast) {
@@ -124,12 +121,13 @@ export class AppointmentService {
             query.date = {
                 gte: now
             }
+
+            orderBy = { date: 'asc' }
         }
 
         if (search) {
             query.OR = [
-                { status: { contains: search, mode: 'insensitive' } },
-                { paymentMethod: { contains: search, mode: 'insensitive' } },
+                { cancellationReason: { contains: search, mode: 'insensitive' } },
                 {
                     doctor: {
                         OR: [
@@ -154,27 +152,7 @@ export class AppointmentService {
                 this.prisma.appointment.findMany({
                     where: query,
                     orderBy,
-                    select: {
-                        doctor: {
-                            select: {
-                                id: true,
-                                fullName: true,
-                                email: true,
-                            }
-                        },
-                        patient: {
-                            select: {
-                                id: true,
-                                fullName: true,
-                                email: true,
-                            },
-                        },
-                        date: true,
-                        status: true,
-                        cancellationReason: true,
-                        isPaid: true,
-                        paymentMethod: true
-                    },
+                    select: appointmentSelect,
                     take: limit,
                     skip
                 }),
@@ -209,7 +187,10 @@ export class AppointmentService {
         try {
             const [
                 totalAppointments,
+                uniquePatients,
+                uniqueDoctors,
                 totalPendingAppointments,
+                totalConfirmedAppointments,
                 totalRunningAppointments,
                 totalCompletedAppointments,
                 totalCancelledAppointments,
@@ -220,7 +201,18 @@ export class AppointmentService {
             ] = await this.prisma.$transaction([
 
                 this.prisma.appointment.count({ where: { ...query } }),
+                this.prisma.appointment.findMany({
+                    where: { ...query },
+                    distinct: 'patientId',
+                    select: { patientId: true }
+                }),
+                this.prisma.appointment.findMany({
+                    where: { ...query },
+                    distinct: "doctorId",
+                    select: { doctorId: true }
+                }),
                 this.prisma.appointment.count({ where: { ...query, status: 'PENDING' } }),
+                this.prisma.appointment.count({ where: { ...query, status: 'CONFIRMED' } }),
                 this.prisma.appointment.count({ where: { ...query, status: 'RUNNING' } }),
                 this.prisma.appointment.count({ where: { ...query, status: 'COMPLETED' } }),
                 this.prisma.appointment.count({ where: { ...query, status: 'CANCELLED' } }),
@@ -233,7 +225,10 @@ export class AppointmentService {
             return {
                 data: {
                     totalAppointments,
+                    totalUniquePatientsCount: uniquePatients.length,
+                    totalUniqueDoctorsCount: uniqueDoctors.length,
                     totalPendingAppointments,
+                    totalConfirmedAppointments,
                     totalRunningAppointments,
                     totalCompletedAppointments,
                     totalCancelledAppointments,
@@ -255,14 +250,18 @@ export class AppointmentService {
 
         try {
 
-            const appointment = await this.prisma.appointment.findUnique({ where: { id } })
+            const appointment = await this.prisma.appointment.findUnique({ 
+                where: { id },
+                select: appointmentSelect
+            })
 
             if (!appointment) {
                 this.handleErrorsService.throwNotFoundError("Appointment not found")
             }
 
             return {
-                appointment
+                data: appointment,
+                message: "Appointment fetched successfully"
             }
         }
 

@@ -33,12 +33,12 @@ export class AppointmentController {
         return this.appointmentService.getAllAppointments(query)
     }
 
-    @Get("/get-all-appointment-count")
+    @Get("/get-all-appointments-count")
     getAllAppointmentCount(
         @User() user: UserDto,
         @Query() query: GetAppointmentsDto
     ) {
-        this.checkRoleService.checkIsAdmin(user.role)
+        this.checkRoleService.checkIsAdminOrPatientOrDoctor(user.role)
         return this.appointmentService.getAllAppointmentCount(query)
     }
 

@@ -1,6 +1,6 @@
 import { Method, Status } from "@prisma/client";
 import { Transform } from "class-transformer";
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 
 export class UpdateAppointmentDto {
     @IsOptional()
@@ -10,7 +10,7 @@ export class UpdateAppointmentDto {
     status?: Status;
 
     @IsOptional()
-    @Transform(({ value }) => value === 'true')
+    @IsBoolean()
     isPaid?: boolean;
 
     @IsOptional()

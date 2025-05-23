@@ -4,6 +4,7 @@ import { HandleErrorsService } from 'src/common/handleErrors.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { doctorSelect } from 'src/prisma/prisma-selects';
 import { UserDto } from 'src/user/dto';
+import * as argon from "argon2";
 
 @Injectable()
 export class DoctorService {
@@ -15,25 +16,27 @@ export class DoctorService {
 
     async createDoctor(dto: CreateDoctorDto) {
 
-        const { userId, specialization, education, experience, aboutMe, fees, availableTimes } = dto
+        const { fullName, email, password, specialization, education, experience, aboutMe, fees, availableTimes } = dto
 
         try {
-            const existingDoctor = await this.prisma.doctor.findFirst({ where: { userId } })
+            const existingDoctor = await this.prisma.user.findFirst({ where: { email } })
 
             if (existingDoctor) this.handleErrorsService.throwBadRequestError("Doctor already exists")
 
-            const [newDoctor] = await this.prisma.$transaction([
-                this.prisma.doctor.create({
-                    data: { userId, specialization, education, experience, aboutMe, fees, availableTimes },
-                }),
-                this.prisma.user.update({
-                    where: { id: userId },
-                    data: { role: 'DOCTOR' },
-                }),
-            ]);
+            const hashedPassword = await argon.hash(password);
+
+            const { id, fullName: newFullName, email: newEmail } = await this.prisma.user.create({ data: { fullName, email, password: hashedPassword, role: 'DOCTOR' } })
+
+            const newDoctor = await this.prisma.doctor.create({
+                data: { userId: id, specialization, education, experience, aboutMe, fees, availableTimes }
+            });
 
             return {
-                doctor: newDoctor,
+                doctor: {
+                    fullName: newFullName,
+                    email: newEmail,
+                    ...newDoctor
+                },
                 message: "Doctor created successfully"
             }
         }
@@ -89,7 +92,7 @@ export class DoctorService {
                     availableTimes.some(time => time.includes(search))
                     : true;
 
-                    const matchedWeeks = weeks
+                const matchedWeeks = weeks
                     ? availableTimes.some(time => weeks.some(week => time.includes(week)))
                     : true;
 
@@ -101,7 +104,7 @@ export class DoctorService {
 
             const totalItems = sortedDoctors.length
 
-            const paginatedDoctors = sortedDoctors.slice(skip, skip + limit)    
+            const paginatedDoctors = sortedDoctors.slice(skip, skip + limit)
 
             return {
                 data: paginatedDoctors,
@@ -261,10 +264,34 @@ export class DoctorService {
 
     async updateDoctor(dto: UpdateDoctorDto, id: string) {
 
-        const { specialization, education, experience, aboutMe, fees, availableTimes } = dto
+        const { fullName, email, password, phone, gender, birthDate, address, specialization, education, experience, aboutMe, fees, availableTimes, isActive } = dto
+
+        let userData = {}
+        let doctorData = {}
+
+        if (fullName && email && password && phone && gender && birthDate && address && specialization && education && experience && aboutMe && fees) {
+            userData = {
+                fullName,
+                email,
+                password,
+                phone,
+                gender,
+                birthDate,
+                address
+            }
+
+            doctorData = {
+                specialization,
+                education,
+                experience,
+                aboutMe,
+                fees,
+                availableTimes,
+                isActive
+            }
+        }
 
         try {
-
             const doctor = await this.prisma.doctor.update({
                 where: { userId: id },
                 data: { specialization, education, experience, aboutMe, fees, availableTimes }
@@ -330,53 +357,6 @@ export class DoctorService {
             return {
                 data: doctor,
                 message: "Available time removed successfully"
-            }
-        }
-
-        catch (error) {
-            this.handleErrorsService.handleError(error)
-        }
-    }
-
-
-    async makeDoctorActive(id: string) {
-
-        try {
-
-            const doctor = await this.prisma.doctor.update({
-                where: { userId: id },
-                data: {
-                    isActive: true
-                }
-            })
-
-            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
-
-            return {
-                message: "Doctor activated successfully"
-            }
-        }
-
-        catch (error) {
-            this.handleErrorsService.handleError(error)
-        }
-    }
-
-    async makeDoctorInactive(id: string) {
-
-        try {
-
-            const doctor = await this.prisma.doctor.update({
-                where: { userId: id },
-                data: {
-                    isActive: false
-                }
-            })
-
-            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
-
-            return {
-                message: "Doctor deactivated successfully"
             }
         }
 

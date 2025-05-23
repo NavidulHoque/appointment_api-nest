@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard';
 import { DoctorService } from './doctor.service';
-import { CreateDoctorDto, GetDoctorsDto } from './dto';
+import { CreateDoctorDto, GetDoctorsDto, UpdateDoctorDto } from './dto';
 import { CheckRoleService } from 'src/common/checkRole.service';
 import { User } from 'src/user/decorator';
 import { UserDto } from 'src/user/dto';
@@ -51,13 +51,13 @@ export class DoctorController {
         return this.doctorService.getTotalRevenue(user)
     }
 
-    @Patch("/update-doctor")
+    @Put("/update-doctor/:id")
     updateDoctor(
-        @Body() body: any,
+        @Body() body: UpdateDoctorDto,
         @Param('id') id: string,
         @User() user: UserDto
     ) {
-        this.checkRoleService.checkIsDoctor(user.role)
+        this.checkRoleService.checkIsAdminOrDoctor(user.role)
         return this.doctorService.updateDoctor(body, id)
     }
 
@@ -79,25 +79,6 @@ export class DoctorController {
     ) {
         this.checkRoleService.checkIsAdmin(user.role)
         return this.doctorService.removeAvailableTime(id, availableTime)
-    }
-
-
-    @Patch("/update-make-doctor-active/:id")
-    makeDoctorActive(
-        @Param('id') id: string,
-        @User() user: UserDto
-    ) {
-        this.checkRoleService.checkIsAdminOrDoctor(user.role)
-        return this.doctorService.makeDoctorActive(id)
-    }
-
-    @Patch("/update-make-doctor-inactive/:id")
-    makeDoctorInActive(
-        @Param('id') id: string,
-        @User() user: UserDto
-    ) {
-        this.checkRoleService.checkIsAdminOrDoctor(user.role)
-        return this.doctorService.makeDoctorInactive(id)
     }
 
     @Delete("/delete-doctor/:id")

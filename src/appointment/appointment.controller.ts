@@ -66,7 +66,7 @@ export class AppointmentController {
         @Param('id') id: string,
         @User() user: UserDto
     ) {
-        this.checkRoleService.checkIsAdminOrDoctor(user.role)
+        this.checkRoleService.checkIsAdminOrPatientOrDoctor(user.role)
         return this.appointmentService.updateAppointment(dto, id)
     }
 }

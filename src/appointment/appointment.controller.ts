@@ -56,7 +56,7 @@ export class AppointmentController {
         @User() user: UserDto,
         @Query() query: GetAppointmentsDto
     ) {
-        this.checkRoleService.checkIsAdmin(user.role)
+        this.checkRoleService.checkIsAdminOrPatientOrDoctor(user.role)
         return this.appointmentService.getTotalAppointmentsGraph(query)
     }
 

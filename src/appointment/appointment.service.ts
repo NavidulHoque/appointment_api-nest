@@ -250,7 +250,7 @@ export class AppointmentService {
 
         try {
 
-            const appointment = await this.prisma.appointment.findUnique({ 
+            const appointment = await this.prisma.appointment.findUnique({
                 where: { id },
                 select: appointmentSelect
             })
@@ -273,37 +273,58 @@ export class AppointmentService {
 
     async getTotalAppointmentsGraph(queryParam: GetAppointmentsDto) {
 
-        const { doctorId, patientId } = queryParam
+        const { doctorId, patientId } = queryParam;
 
-        const conditions = doctorId ? `"doctorId" = ${doctorId}` : patientId ? `"patientId" = ${patientId}` : ""
+        const months = [
+            'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
+        ]
 
-        const whereClause = conditions ? `WHERE ${conditions}` : '';
+        let whereClause = '';
+        const values: any[] = [];
+
+        if (doctorId) {
+            whereClause = `WHERE "doctorId" = $1`;
+            values.push(doctorId);
+        }
+
+        else if (patientId) {
+            whereClause = `WHERE "patientId" = $1`;
+            values.push(patientId);
+        }
 
         const query = `
-             SELECT 
-               EXTRACT(YEAR FROM "date") AS year,
-               EXTRACT(MONTH FROM "date") AS month,
-               COUNT(*) AS total
-             FROM "Appointment"
-             ${whereClause}
-             GROUP BY year, month
-             ORDER BY year, month;
-             `;
+                SELECT 
+                    EXTRACT(YEAR FROM "date") AS year,
+                    EXTRACT(MONTH FROM "date") AS month,
+                    COUNT(*) AS total
+                FROM "Appointment"
+                ${whereClause}
+                GROUP BY year, month
+                ORDER BY year, month;
+                `;
 
         try {
-            const result = await this.prisma.$queryRaw`${query}`
+            const rawResult: any[] = values.length > 0
+                ? await this.prisma.$queryRawUnsafe(query, ...values)
+                : await this.prisma.$queryRawUnsafe(query);
+
+            const result = rawResult.map((item: any) => ({
+                year: Number(item.year),
+                month: months[Number(item.month) - 1],
+                total: Number(item.total),
+            }));
 
             return {
                 data: result,
                 message: "Appointments graph fetched successfully"
-            }
+            };
         }
 
         catch (error) {
-            this.handleErrorsService.handleError(error)
+            this.handleErrorsService.handleError(error);
         }
-
     }
+
 
     async updateAppointment(dto: UpdateAppointmentDto, id: string) {
 
@@ -320,12 +341,20 @@ export class AppointmentService {
         try {
             const appointment = await this.prisma.appointment.findUnique({ where: { id } })
 
+            if (!appointment) {
+                this.handleErrorsService.throwNotFoundError("Appointment not found")
+            }
+
             if (!appointment?.isPaid && status === 'COMPLETED') {
                 data.isPaid = true
                 data.paymentMethod = 'CASH'
             }
 
-            const updatedAppointment = await this.prisma.appointment.update({ where: { id }, data })
+            const updatedAppointment = await this.prisma.appointment.update({
+                where: { id },
+                data,
+                select: appointmentSelect
+            })
 
             return {
                 data: updatedAppointment,

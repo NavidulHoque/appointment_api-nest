@@ -1,38 +1,33 @@
-import { IsString, IsNumber, Min, MinLength, IsArray, ArrayNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsDate } from 'class-validator';
+import { CreateDoctorDto } from './createDoctor.dto';
+import { PartialType } from '@nestjs/mapped-types';
+import { Gender } from '@prisma/client';
+import { Transform, Type } from 'class-transformer';
 
-export class UpdateDoctorDto {
+export class UpdateDoctorDto extends PartialType(CreateDoctorDto) {
     @IsOptional()
     @IsString()
-    specialization?: string;
-
-    @IsOptional()
-    @IsString()
-    @MinLength(5, { message: 'Education must be at least 5 characters long' })
-    education?: string;
-
-    @IsOptional()
-    @IsNumber()
-    @Min(1, { message: 'Experience must be at least 1 year' })
-    experience?: number;
+    phone?: string;
 
     @IsOptional()
     @IsString()
-    @MinLength(10, { message: 'About me must be at least 10 characters long' })
-    aboutMe?: string;
+    @IsEnum(Gender, { message: 'Gender must be male, female or other' })
+    @Transform(({ value }) => value.toUpperCase())
+    gender?: Gender;
+
+    @Type(() => Date)
+    @IsDate({ message: 'Date must be a valid date' })
+    birthDate?: string;
 
     @IsOptional()
-    @IsNumber()
-    @Min(20, { message: 'Fees must be at least 20' })
-    fees?: number;
+    @IsString()
+    address?: string;
 
     @IsOptional()
-    @IsArray()
-    @ArrayNotEmpty()
-    @IsString({ each: true })
-    availableTimes?: string[];
-
-    @IsOptional()
-    @IsBoolean()
+    @Transform(({ value }) => {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+    })
     isActive?: boolean;
 }
 

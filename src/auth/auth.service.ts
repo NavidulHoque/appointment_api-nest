@@ -27,9 +27,7 @@ export class AuthService {
 
       const user = await this.fetchUserService.fetchUser(email)
 
-      if (user) {
-        this.handleErrorsService.throwBadRequestError("User already exists")
-      }
+      if (user) this.handleErrorsService.throwBadRequestError("User already exists")
 
       const hashedPassword = await argon.hash(password);
 

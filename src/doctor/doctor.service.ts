@@ -141,7 +141,7 @@ export class DoctorService {
 
             if (!fetchedDoctor) this.handleErrorsService.throwNotFoundError("Doctor not found");
 
-            const [reviews, totalReviews, averageRating, relatedDoctors] = await this.prisma.$transaction([
+            const [reviews, totalReviews, averageRating, relatedDoctors, bookedAppointmentDates] = await this.prisma.$transaction([
 
                 this.prisma.review.findMany({
                     where: { doctorId: id },
@@ -179,6 +179,19 @@ export class DoctorService {
                     },
                     take: 5,
                     select: doctorSelect
+                }),
+
+                this.prisma.appointment.findMany({
+                    where: {
+                        doctorId: id,
+                        status: {
+                            in: ["PENDING", "CONFIRMED"]
+                        }
+                    },
+                    select: {
+                        date: true
+                    },
+
                 })
             ])
 
@@ -194,6 +207,7 @@ export class DoctorService {
                         reviews
                     },
                     relatedDoctors: sortedRelatedDoctors,
+                    bookedAppointmentDates
                 },
                 pagination: {
                     totalItems: totalReviews,
@@ -320,6 +334,10 @@ export class DoctorService {
                         password: hashedPassword
                     }
                 })
+
+                return {
+                    message: "Password updated successfully"
+                }
             }
 
             if (removeAvailableTime) {
@@ -346,26 +364,21 @@ export class DoctorService {
                 })
             }
 
-            let doctor: any = {}
+            const doctor = await this.prisma.doctor.update({
+                where: { userId: id },
+                data: doctorData,
+                select: {
+                    specialization: true,
+                    education: true,
+                    experience: true,
+                    aboutMe: true,
+                    fees: true,
+                    availableTimes: true,
+                    isActive: true
+                }
+            })
 
-            if (doctorData) {
-
-                doctor = await this.prisma.doctor.update({
-                    where: { userId: id },
-                    data: doctorData,
-                    select: {
-                        specialization: true,
-                        education: true,
-                        experience: true,
-                        aboutMe: true,
-                        fees: true,
-                        availableTimes: true,
-                        isActive: true
-                    }
-                })
-
-                if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
-            }
+            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
 
             return {
                 data: {

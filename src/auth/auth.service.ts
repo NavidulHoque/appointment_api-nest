@@ -50,7 +50,7 @@ export class AuthService {
     const { email, password: plainPassword } = dto
 
     try {
-      const response = await this.login(email, plainPassword, "PATIENT")
+      const response = await this.login(email, plainPassword, "patient")
 
       return response
     }
@@ -65,7 +65,7 @@ export class AuthService {
     const { email, password: plainPassword } = dto
 
     try {
-      const response = await this.login(email, plainPassword, "ADMIN")
+      const response = await this.login(email, plainPassword, "admin")
 
       return response
     }
@@ -80,7 +80,7 @@ export class AuthService {
     const { email, password: plainPassword } = dto
 
     try {
-      const response = await this.login(email, plainPassword, "DOCTOR")
+      const response = await this.login(email, plainPassword, "doctor")
 
       return response
     }
@@ -96,7 +96,7 @@ export class AuthService {
 
     if (!user) this.handleErrorsService.throwBadRequestError("User not found");
 
-    if (user?.role !== role) this.handleErrorsService.throwBadRequestError(`${role} login only`);
+    if (user?.role.toLowerCase() !== role) this.handleErrorsService.throwForbiddenError(`${role} login only`);
 
     const { password: hashedPassword, id } = user as AuthUser;
 

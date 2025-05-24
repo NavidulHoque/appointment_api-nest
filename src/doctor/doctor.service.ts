@@ -306,13 +306,15 @@ export class DoctorService {
             }
         }
 
-        if (addAvailableTime) {
-            doctorData.availableTimes = {
-                push: addAvailableTime
+        else if (addAvailableTime) {
+            doctorData = {
+                availableTimes: {
+                    push: addAvailableTime
+                }
             }
         }
 
-        if (isActive !== undefined) doctorData.isActive = isActive
+        else if (isActive !== undefined) doctorData = { isActive }
 
         try {
 
@@ -340,17 +342,22 @@ export class DoctorService {
                 }
             }
 
-            if (removeAvailableTime) {
+            else if (removeAvailableTime) {
+
                 const doctorRecord = await this.prisma.doctor.findUnique({ where: { userId: id } })
 
                 if (!doctorRecord) this.handleErrorsService.throwNotFoundError("Doctor not found")
 
                 const updatedAvailableTimes = doctorRecord?.availableTimes.filter((time: string) => time !== removeAvailableTime);
 
-                doctorData.availableTimes = updatedAvailableTimes
+                doctorData = {
+                    availableTimes: {
+                        set: updatedAvailableTimes
+                    }
+                }
             }
 
-            if (userData) {
+            else if (userData) {
 
                 const existingUser = await this.fetchUserService.fetchUser(email)
 
@@ -368,6 +375,7 @@ export class DoctorService {
                 where: { userId: id },
                 data: doctorData,
                 select: {
+                    userId: true,
                     specialization: true,
                     education: true,
                     experience: true,

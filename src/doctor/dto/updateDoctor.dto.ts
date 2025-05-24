@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsEnum, IsDate } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsDate, IsBoolean } from 'class-validator';
 import { CreateDoctorDto } from './createDoctor.dto';
 import { PartialType } from '@nestjs/mapped-types';
 import { Gender } from '@prisma/client';
@@ -33,10 +33,7 @@ export class UpdateDoctorDto extends PartialType(CreateDoctorDto) {
     newPassword?: string;
 
     @IsOptional()
-    @Transform(({ value }) => {
-        if (value === 'true') return true;
-        if (value === 'false') return false;
-    })
+    @IsBoolean()
     isActive?: boolean;
 
     @IsOptional()

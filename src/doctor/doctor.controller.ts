@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard';
 import { DoctorService } from './doctor.service';
 import { CreateDoctorDto, GetDoctorsDto, UpdateDoctorDto } from './dto';
@@ -60,27 +60,7 @@ export class DoctorController {
         this.checkRoleService.checkIsAdminOrDoctor(user.role)
         return this.doctorService.updateDoctor(body, id)
     }
-
-    @Patch("/update-add-available-times/:id")
-    addAvailableTime(
-        @Body('availableTime') availableTime: string,
-        @Param('id') id: string,
-        @User() user: UserDto
-    ) {
-        this.checkRoleService.checkIsAdmin(user.role)
-        return this.doctorService.addAvailableTime(id, availableTime)
-    }
-
-    @Patch("/update-remove-available-times/:id")
-    removeAvailableTime(
-        @Body('availableTime') availableTime: string,
-        @Param('id') id: string,
-        @User() user: UserDto
-    ) {
-        this.checkRoleService.checkIsAdmin(user.role)
-        return this.doctorService.removeAvailableTime(id, availableTime)
-    }
-
+   
     @Delete("/delete-doctor/:id")
     deleteDoctor(
         @Param('id') id: string,

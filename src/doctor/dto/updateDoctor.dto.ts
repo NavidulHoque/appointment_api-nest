@@ -29,5 +29,13 @@ export class UpdateDoctorDto extends PartialType(CreateDoctorDto) {
         if (value === 'false') return false;
     })
     isActive?: boolean;
+
+    @IsOptional()
+    @IsString()
+    addAvailableTime?: string;
+
+    @IsOptional()
+    @IsString()
+    removeAvailableTime?: string;
 }
 

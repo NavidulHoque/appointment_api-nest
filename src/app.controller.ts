@@ -5,6 +5,6 @@ export class AppController {
 
     @Get("/")
     welcome(){
-        return "Welcome to Appointment API"
+        return "Welcome to Doctors Appointment Management System"
     }
 }

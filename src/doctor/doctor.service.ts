@@ -6,6 +6,7 @@ import { doctorSelect } from 'src/prisma/prisma-selects';
 import { UserDto } from 'src/user/dto';
 import * as argon from "argon2";
 import { FetchUserService } from 'src/common/fetchUser.service';
+import { ComparePasswordService } from 'src/common/comparePassword.service';
 
 @Injectable()
 export class DoctorService {
@@ -14,6 +15,7 @@ export class DoctorService {
         private prisma: PrismaService,
         private handleErrorsService: HandleErrorsService,
         private fetchUserService: FetchUserService,
+        private comparePasswordService: ComparePasswordService
     ) { }
 
     async createDoctor(dto: CreateDoctorDto) {
@@ -266,16 +268,15 @@ export class DoctorService {
 
     async updateDoctor(dto: UpdateDoctorDto, id: string) {
 
-        const { fullName, email, password, phone, gender, birthDate, address, specialization, education, experience, aboutMe, fees, addAvailableTime, removeAvailableTime, isActive } = dto
+        const { fullName, email, currentPassword, newPassword, phone, gender, birthDate, address, specialization, education, experience, aboutMe, fees, addAvailableTime, removeAvailableTime, isActive } = dto
 
         let userData: any = null
         let doctorData: any = null
 
-        if (fullName && email && password && phone && gender && birthDate && address && specialization && education && experience && aboutMe && fees) {
+        if (fullName && email && phone && gender && birthDate && address && specialization && education && experience && aboutMe && fees) {
             userData = {
                 fullName,
                 email,
-                password,
                 phone,
                 gender,
                 birthDate,
@@ -301,6 +302,26 @@ export class DoctorService {
 
         try {
 
+            if (currentPassword && newPassword) {
+
+                const user = await this.prisma.user.findUnique({ where: { id } })
+
+                if (!user) this.handleErrorsService.throwNotFoundError("User not found")
+
+                const isMatched = await this.comparePasswordService.comparePassword(currentPassword, user?.password as string)
+
+                if (!isMatched) this.handleErrorsService.throwBadRequestError("Current password invalid")
+
+                const hashedPassword = await argon.hash(newPassword)
+
+                await this.prisma.user.update({
+                    where: { id },
+                    data: {
+                        password: hashedPassword
+                    }
+                })
+            }
+
             if (removeAvailableTime) {
                 const doctorRecord = await this.prisma.doctor.findUnique({ where: { userId: id } })
 
@@ -325,15 +346,37 @@ export class DoctorService {
                 })
             }
 
-            const doctor = await this.prisma.doctor.update({
-                where: { userId: id },
-                data: doctorData
-            })
+            let doctor: any = {}
 
-            if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
+            if (doctorData) {
+
+                doctor = await this.prisma.doctor.update({
+                    where: { userId: id },
+                    data: doctorData,
+                    select: {
+                        specialization: true,
+                        education: true,
+                        experience: true,
+                        aboutMe: true,
+                        fees: true,
+                        availableTimes: true,
+                        isActive: true
+                    }
+                })
+
+                if (!doctor) this.handleErrorsService.throwNotFoundError("Doctor not found")
+            }
 
             return {
-                doctor,
+                data: {
+                    fullName,
+                    email,
+                    phone,
+                    gender,
+                    birthDate,
+                    address,
+                    ...doctor
+                },
                 message: "Doctor updated successfully"
             }
         }

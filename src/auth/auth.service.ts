@@ -45,47 +45,86 @@ export class AuthService {
     }
   }
 
-  async login(dto: LoginDto) {
+  async patientLogin(dto: LoginDto) {
 
     const { email, password: plainPassword } = dto
 
     try {
-      const user = await this.fetchUserService.fetchUser(email)
+      const response = await this.login(email, plainPassword, "PATIENT")
 
-      if (!user) this.handleErrorsService.throwBadRequestError("User not found");
-
-      const { password: hashedPassword } = user as AuthUser;
-
-      const isMatched = await this.comparePasswordService.comparePassword(plainPassword, hashedPassword)
-
-      if (!isMatched) this.handleErrorsService.throwBadRequestError("Password invalid")
-
-      const payload = { id: user?.id }
-
-      const accessToken = await this.generateAccessToken(payload)
-      const refreshToken = await this.generateRefreshToken(payload)
-
-      const updatedUser = await this.prisma.user.update({
-        where: { id: user?.id },
-        data: { refreshToken },
-        select: {
-          id: true,
-          fullName: true,
-          email: true,
-          role: true,
-          refreshToken: true
-        },
-      })
-
-      return {
-        message: 'Logged in successfully',
-        data: updatedUser,
-        accessToken
-      }
+      return response
     }
 
     catch (error) {
       throw error; //throws server error
+    }
+  }
+
+  async adminLogin(dto: LoginDto) {
+
+    const { email, password: plainPassword } = dto
+
+    try {
+      const response = await this.login(email, plainPassword, "ADMIN")
+
+      return response
+    }
+
+    catch (error) {
+      throw error; //throws server error
+    }
+  }
+
+  async doctorLogin(dto: LoginDto) {
+
+    const { email, password: plainPassword } = dto
+
+    try {
+      const response = await this.login(email, plainPassword, "DOCTOR")
+
+      return response
+    }
+
+    catch (error) {
+      throw error; //throws server error
+    }
+  }
+
+  private async login(email: string, plainPassword: string, role: string): Promise<any> {
+
+    const user = await this.fetchUserService.fetchUser(email)
+
+    if (!user) this.handleErrorsService.throwBadRequestError("User not found");
+
+    if (user?.role !== role) this.handleErrorsService.throwBadRequestError(`${role} login only`);
+
+    const { password: hashedPassword, id } = user as AuthUser;
+
+    const isMatched = await this.comparePasswordService.comparePassword(plainPassword, hashedPassword)
+
+    if (!isMatched) this.handleErrorsService.throwBadRequestError("Password invalid")
+
+    const payload = { id }
+
+    const accessToken = await this.generateAccessToken(payload)
+    const refreshToken = await this.generateRefreshToken(payload)
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: { refreshToken },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+        refreshToken: true
+      },
+    })
+
+    return {
+      message: 'Logged in successfully',
+      data: updatedUser,
+      accessToken
     }
   }
 

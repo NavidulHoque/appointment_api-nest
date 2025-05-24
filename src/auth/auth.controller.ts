@@ -19,9 +19,19 @@ export class AuthController {
         return this.authService.register(dto)
     }
 
-    @Post("/login")
-    login(@Body() dto: LoginDto){
-        return this.authService.login(dto)
+    @Post("/patientLogin")
+    patientLogin(@Body() dto: LoginDto){
+        return this.authService.patientLogin(dto)
+    }
+
+    @Post("/doctorLogin")
+    doctorLogin(@Body() dto: LoginDto){
+        return this.authService.doctorLogin(dto)
+    }
+
+    @Post("/adminLogin")
+    adminLogin(@Body() dto: LoginDto){
+        return this.authService.adminLogin(dto)
     }
 
     // @Post("/forgetPassword")

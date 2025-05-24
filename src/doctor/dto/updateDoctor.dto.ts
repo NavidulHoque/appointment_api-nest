@@ -15,6 +15,7 @@ export class UpdateDoctorDto extends PartialType(CreateDoctorDto) {
     @Transform(({ value }) => value.toUpperCase())
     gender?: Gender;
 
+    @IsOptional()
     @Type(() => Date)
     @IsDate({ message: 'Date must be a valid date' })
     birthDate?: string;
@@ -22,6 +23,14 @@ export class UpdateDoctorDto extends PartialType(CreateDoctorDto) {
     @IsOptional()
     @IsString()
     address?: string;
+
+    @IsOptional()
+    @IsString()
+    currentPassword?: string;
+
+    @IsOptional()
+    @IsString()
+    newPassword?: string;
 
     @IsOptional()
     @Transform(({ value }) => {

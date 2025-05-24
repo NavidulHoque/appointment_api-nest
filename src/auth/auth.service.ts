@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { FetchUserService } from 'src/common/fetchUser.service';
 import { LoginDto, RegistrationDto } from './dto';
 import { AuthUser } from './interface';
+import { ComparePasswordService } from 'src/common/comparePassword.service';
 
 @Injectable({})
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private config: ConfigService,
     private handleErrorsService: HandleErrorsService,
     private fetchUserService: FetchUserService,
+    private comparePasswordService: ComparePasswordService
   ) { }
 
   async register(dto: RegistrationDto) {
@@ -54,7 +56,7 @@ export class AuthService {
 
       const { password: hashedPassword } = user as AuthUser;
 
-      const isMatched = await this.comparePassword(plainPassword, hashedPassword)
+      const isMatched = await this.comparePasswordService.comparePassword(plainPassword, hashedPassword)
 
       if (!isMatched) this.handleErrorsService.throwBadRequestError("Password invalid")
 
@@ -85,12 +87,6 @@ export class AuthService {
     catch (error) {
       throw error; //throws server error
     }
-  }
-
-  private async comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
-    const isMatched = await argon.verify(hashedPassword, plainPassword)
-
-    return isMatched
   }
 
   private async generateAccessToken(payload: { id: string | undefined }): Promise<string> {
